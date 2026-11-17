@@ -2,6 +2,8 @@
 
 A small web app: clocks for India, Abu Dhabi and China, and India Meteorological Department (IMD) weather for Jaipur and Nagaur.
 
+Open it: <https://subhashbhakar-source.github.io/samay-mausam/>
+
 ## How it stays up to date
 
 - `index.html` is the whole app. The clocks run on the viewer's own device clock with fixed offsets: IST is GMT+5:30, Abu Dhabi GMT+4, China GMT+8.
