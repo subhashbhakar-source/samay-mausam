@@ -103,6 +103,21 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .gh-soft{color:var(--ink-2);font-size:.9rem}
 .gh-msg{font-size:.95rem;line-height:1.45;color:var(--ink-2)}
 
+/* the weather, kept short: today, tomorrow, rain, and the sun and moon */
+.mausam{display:flex;flex-direction:column;gap:.8rem;min-width:0}
+.mausam > h2{font:500 2.1rem/1.2 var(--display)}
+.mau-grid{display:grid;gap:.8rem}
+.mau{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:.8rem .9rem 1rem;display:flex;flex-direction:column;gap:.65rem;min-width:0}
+.mau h3{font:500 1.9rem/1.1 var(--display)}
+.mau dl{margin:0;display:grid;grid-template-columns:4.6rem minmax(0,1fr);gap:.5rem .7rem;line-height:1.5}
+.mau dt{font-weight:700;white-space:nowrap}
+.mau dd{margin:0;min-width:0}
+.mau dl + dl{border-top:1px solid var(--rule);padding-top:.65rem}
+.mau-warn{font-weight:600;color:var(--kumkum);line-height:1.45}
+.mau-wait{color:var(--ink-2)}
+@media (min-width:60rem){.mau-grid{grid-template-columns:1fr 1fr;align-items:start}}
+@media (max-width:21rem){.mau dl{grid-template-columns:1fr;gap:.1rem}.mau dd{margin-bottom:.45rem}.mau dd:last-child{margin-bottom:0}}   /* the narrowest phones: each label above its line */
+
 .foot{color:var(--ink-2);font-size:.9rem;line-height:1.55;max-width:44rem}
 </style>
 </head>
@@ -136,6 +151,12 @@ a{color:var(--kumkum);text-underline-offset:.15em}
       <p class="pan-place">जयपुर के सूर्योदय से</p>
     </div>
     <div id="pan-body"><p class="pan-wait">पंचांग गिना जा रहा है।</p></div>
+  </section>
+
+  <section class="mausam" aria-labelledby="mau-h">
+    <h2 id="mau-h">मौसम</h2>
+    <div class="mau-grid" id="mau-body"><p class="mau-wait">मौसम की जानकारी मंगाई जा रही है।</p></div>
+    <p class="foot" id="mau-src" role="status"></p>
   </section>
 
   <p class="foot">जहाज़ का टाइम सुभाष के फोन से आता है। जब वे इंटरनेट चालू करके अपना ऐप खोलते हैं, यह अपने आप ठीक हो जाता है; बीच के समय में यह पिछली खबर के हिसाब से चलता रहता है।</p>
@@ -238,6 +259,139 @@ function paintShip(){
   set($('ship-heard'),heard(now,note.t));
 }
 
+/* ---------- the weather ----------
+   India Meteorological Department figures for Jaipur and Nagaur. The app's own job reads the two IMD pages
+   twice an hour and saves them in data/weather.json; this page says them in Hindi, and only the short of it:
+   today, tomorrow, rain, sunrise, sunset and moonrise. */
+var STN=[{key:'jaipur',name:'जयपुर'},{key:'nagaur',name:'नागौर'}];
+var MON3=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+var OLD=6*3600*1000;
+var wxDoc=null,wxState='wait',wxLoad=0,wxDay=-1;
+function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n;}
+function num(v){var n=typeof v==='number'?v:(typeof v==='string'&&v.trim()!==''?Number(v):NaN);return isFinite(n)?n:null;}
+function tempOf(v){var n=num(v);return n!=null&&n>-30&&n<65?n:null;}
+function text(v){return typeof v==='string'?v.trim().slice(0,240):'';}
+function isoDay(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(text(v));return m&&+m[2]>=1&&+m[2]<=12&&+m[3]>=1&&+m[3]<=31?{y:+m[1],mo:+m[2]-1,d:+m[3]}:null;}
+function dayNo(q){return Math.floor(Date.UTC(q.y,q.mo,q.d)/DAY);}
+/* a forecast row is dated "17-Nov": the year comes from the report's own date */
+function rowDay(v,ref){
+  var m=/^(\d{1,2})[-\s\/]([A-Za-z]{3})/.exec(text(v));if(!m)return isoDay(v);
+  var mo=MON3.indexOf(m[2].toLowerCase()),d=+m[1],y=ref.y;if(mo<0||d<1||d>31)return null;
+  if(ref.mo===11&&mo===0)y+=1;else if(ref.mo===0&&mo===11)y-=1;
+  return {y:y,mo:mo,d:d};
+}
+function clock(v){   /* "17:36" becomes "शाम 5:36" */
+  var m=/^(\d{1,2}):(\d{2})$/.exec(text(v));if(!m||+m[1]>23||+m[2]>59)return null;
+  return partWord(+m[1])+' '+(+m[1]%12||12)+':'+m[2];
+}
+function rainOf(v){
+  var n=num(v),t=text(v).toLowerCase();
+  if(t==='nil'||n===0)return {kind:'nil'};
+  if(t==='trace'||t==='tr')return {kind:'trace'};
+  if(n!=null&&n>0)return {kind:'mm',v:n};
+  return {kind:'none'};
+}
+/* IMD writes its forecasts and warnings in a small set of English phrases. These say the same in Hindi, piece by piece:
+   first the sky, then what may come with it. Each entry: pattern, the word, the word before "के आसार", and its family
+   (only the first match in a family is used, so "dense fog" is not also counted as "fog"). */
+var SKY=[[/mainly clear/,'आसमान ज़्यादातर साफ'],[/partly cloudy/,'कुछ-कुछ बादल'],[/cloudy|overcast/,'बादल छाए रहेंगे'],[/sunny/,'धूप खिली रहेगी'],[/clear|fair/,'आसमान साफ']];
+var WITH=[
+  [/very dense fog/,'बहुत घना कोहरा','बहुत घने कोहरे','fog'],[/dense fog/,'घना कोहरा','घने कोहरे','fog'],[/moderate fog/,'मध्यम कोहरा','मध्यम कोहरे','fog'],
+  [/shallow fog/,'हल्का कोहरा','हल्के कोहरे','fog'],[/fog/,'कोहरा','कोहरे','fog'],[/mist/,'कुहासा','कुहासे','fog'],[/haze|smoke/,'धुंध','धुंध','haze'],
+  [/very heavy rain/,'बहुत तेज़ बारिश','बहुत तेज़ बारिश','rain'],[/heavy rain/,'तेज़ बारिश','तेज़ बारिश','rain'],[/moderate rain/,'मध्यम बारिश','मध्यम बारिश','rain'],
+  [/light rain/,'हल्की बारिश','हल्की बारिश','rain'],[/rain|shower/,'बारिश','बारिश','rain'],[/drizzle/,'बूंदाबांदी','बूंदाबांदी','drizzle'],
+  [/thunder|lightning/,'गरज-चमक','गरज-चमक','thunder'],[/hail/,'ओले','ओलों','hail'],
+  [/dust ?storm|sand ?storm/,'आंधी','आंधी','dust'],[/dust/,'धूल भरी हवा','धूल भरी हवा','dust'],
+  [/squall/,'तेज़ झोंकेदार हवा','तेज़ झोंकेदार हवा','wind'],[/strong.*wind|gusty/,'तेज़ हवा','तेज़ हवा','wind'],
+  [/heat ?wave/,'लू','लू','heat'],[/hot and humid|humid/,'उमस भरी गर्मी','उमस भरी गर्मी','heat'],[/hot day/,'बहुत गर्म दिन','बहुत गर्म दिन','heat'],[/warm night/,'गर्म रात','गर्म रात','night'],
+  [/cold ?wave/,'शीत लहर','शीत लहर','cold'],[/cold day/,'ठंडा दिन','ठंडे दिन','cold'],[/frost/,'पाला','पाले','frost'],[/snow/,'बर्फबारी','बर्फबारी','snow']
+];
+function withs(t){var seen={},out=[];WITH.forEach(function(x){if(!seen[x[3]]&&x[0].test(t)){seen[x[3]]=true;out.push(x);}});return out;}
+function listOf(a){return a.length<2?a.join(''):a.slice(0,-1).join(', ')+' और '+a[a.length-1];}
+function skyOf(t){var sky=null;SKY.some(function(x){if(x[0].test(t)){sky=x[1];return true;}return false;});return sky;}
+function skyHindi(v){
+  var t=text(v).toLowerCase(),w=withs(t),out=[],cut=t.indexOf(' becoming '),sky,later;
+  if(!t)return '';
+  sky=skyOf(cut<0?t:t.slice(0,cut));later=cut<0?null:skyOf(t.slice(cut));   /* "mainly clear sky becoming partly cloudy towards evening" */
+  if(!sky&&later){sky=later;later=null;}
+  if(sky)out.push(sky+(later&&later!==sky?', बाद में '+(later==='बादल छाए रहेंगे'?'घने बादल':later):'')+'।');
+  if(w.length)out.push(listOf(w.map(function(x){return x[2];}))+' के आसार।');
+  return out.length?out.join(' '):text(v)+'।';   /* a phrase this page does not know is shown as IMD wrote it */
+}
+function wet(v){var t=text(v).toLowerCase();return t?/rain|shower|drizzle/.test(t):null;}
+function warnHindi(v){
+  var t=text(v);if(!t||/^no\s*warning/i.test(t)||/^nil$/i.test(t))return '';
+  var w=withs(t.toLowerCase());
+  return w.length?listOf(w.map(function(x){return x[1];})):t;
+}
+function station(doc,today){
+  var imd=doc&&doc.imd&&typeof doc.imd==='object'?doc.imd:null;if(!imd)return null;
+  var dated=isoDay(imd.dated),rows={},at=Date.parse(doc.fetchedAt);
+  if(dated&&Array.isArray(imd.forecast))imd.forecast.slice(0,10).forEach(function(r){
+    if(!r||typeof r!=='object')return;
+    var d=rowDay(r.date,dated),lo=tempOf(r.min_c),hi=tempOf(r.max_c),x;if(!d)return;
+    if(lo!=null&&hi!=null&&lo>hi){x=lo;lo=hi;hi=x;}
+    rows[dayNo(d)]={min:lo,max:hi,sky:text(r.forecast),warn:text(r.warning)};
+  });
+  return {today:rows[today]||null,tomorrow:rows[today+1]||null,dated:dated?dayNo(dated):null,rain:rainOf(imd.rain_24h),
+    sunrise:clock(imd.sunrise_tomorrow),sunset:clock(imd.sunset),moonrise:clock(imd.moonrise),at:isFinite(at)?at:null};
+}
+function dayLine(r){
+  if(!r)return 'इस दिन का अनुमान अभी नहीं मिला।';
+  var t=[];
+  if(r.max!=null)t.push('दिन में '+Math.round(r.max)+' डिग्री');
+  if(r.min!=null)t.push('रात में '+Math.round(r.min)+' डिग्री');
+  return [skyHindi(r.sky),t.length?t.join(', ')+'।':''].filter(Boolean).join(' ')||'इस दिन का अनुमान अभी नहीं मिला।';
+}
+function rainLine(s,today){
+  var a=s.today?wet(s.today.sky):null,b=s.tomorrow?wet(s.tomorrow.sky):null,out=[];
+  if(a!=null&&b!=null)out.push(a&&b?'आज और कल, दोनों दिन बारिश के आसार हैं।':a?'आज बारिश के आसार हैं, कल नहीं।':b?'आज बारिश के आसार नहीं, कल हैं।':'आज और कल बारिश के आसार नहीं।');
+  else if(a!=null)out.push(a?'आज बारिश के आसार हैं।':'आज बारिश के आसार नहीं।');
+  else if(b!=null)out.push(b?'कल बारिश के आसार हैं।':'कल बारिश के आसार नहीं।');
+  var upto=s.dated===today?'आज सुबह':s.dated===today-1?'कल सुबह':null;   /* IMD measures rain over the 24 hours to 8:30 in the morning of its report */
+  if(upto&&s.rain.kind!=='none')out.push(upto+' 8:30 बजे तक के 24 घंटों में '+(s.rain.kind==='nil'?'बारिश नहीं हुई।':s.rain.kind==='trace'?'बस बूंदाबांदी हुई।':(Math.round(s.rain.v*10)/10)+' मिमी बारिश हुई।'));
+  return out.join(' ')||'बारिश की जानकारी अभी नहीं मिली।';
+}
+function pair(dl,k,v){dl.appendChild(el('dt',null,k));dl.appendChild(el('dd',null,v));}
+function renderWx(){
+  var host=$('mau-body'),src=$('mau-src');if(!host)return;
+  var now=trueNow(),today=parts(now,IST).dn,newest=0,any=false;
+  wxDay=today;host.textContent='';
+  if(wxDoc&&wxDoc.stations&&typeof wxDoc.stations==='object')STN.forEach(function(st){
+    var s=station(wxDoc.stations[st.key],today);if(!s)return;
+    any=true;if(s.at)newest=Math.max(newest,s.at);
+    var card=el('article','mau'),dl=el('dl'),sky=el('dl'),w=[];
+    card.appendChild(el('h3',null,st.name));
+    if(s.today&&warnHindi(s.today.warn))w.push('आज: '+warnHindi(s.today.warn));
+    if(s.tomorrow&&warnHindi(s.tomorrow.warn))w.push('कल: '+warnHindi(s.tomorrow.warn));
+    if(w.length)card.appendChild(el('p','mau-warn','मौसम विभाग की चेतावनी। '+w.join('; ')+'।'));
+    pair(dl,'आज',dayLine(s.today));pair(dl,'कल',dayLine(s.tomorrow));pair(dl,'बारिश',rainLine(s,today));
+    card.appendChild(dl);
+    if(s.sunrise)pair(sky,'सूर्योदय',s.sunrise);
+    if(s.sunset)pair(sky,'सूर्यास्त',s.sunset);
+    if(s.moonrise)pair(sky,'चंद्रोदय',s.moonrise);
+    if(sky.firstChild)card.appendChild(sky);
+    host.appendChild(card);
+  });
+  if(!any){
+    host.appendChild(el('p','mau-wait',wxState==='wait'?'मौसम की जानकारी मंगाई जा रही है।':'मौसम की जानकारी अभी नहीं मिल सकी। नेटवर्क आने पर अपने आप आ जाएगी।'));
+    set(src,'');return;
+  }
+  var pt=newest?parts(newest,IST):null,days=pt?today-pt.dn:0;
+  var when=pt?(days<=0?'आज ':days===1?'कल ':pt.d+' '+MO[pt.mo]+' को ')+partWord(pt.h)+' '+hm(pt)+' पर ली गई':'';
+  set(src,(newest&&now-newest>OLD?'यह जानकारी पुरानी हो सकती है। ':'')+'मौसम की जानकारी भारत मौसम विज्ञान विभाग (IMD) की है'+(when?', '+when:'')+'।');
+}
+function loadWx(){
+  wxLoad=Date.now();
+  fetch('data/weather.json?t='+Math.floor(Date.now()/60000),{cache:'no-store'}).then(function(r){
+    if(!r.ok)throw new Error('http '+r.status);return r.json();
+  }).then(function(j){
+    if(!j||typeof j!=='object'||!j.stations||typeof j.stations!=='object')throw new Error('shape');
+    wxDoc=j;wxState='ok';try{localStorage.setItem('sm.ghar.wx',JSON.stringify(j));}catch(e){}
+  }).catch(function(){if(wxState==='wait')wxState='err';}).then(renderWx);
+}
+try{wxDoc=JSON.parse(localStorage.getItem('sm.ghar.wx')||'null');}catch(e){wxDoc=null;}   /* the last copy this phone saw, until a fresh one arrives */
+
 /* ---------- the running clocks ---------- */
 var lastMinute=-1,lastDev=0,lastPerf=0;
 function tick(){
@@ -250,15 +404,19 @@ function tick(){
     set($('in-part'),partWord(p.h));set($('in-num'),hm(p));set($('in-date'),dateLine(p));
     paintShip();
     if(window.PanchangUI)window.PanchangUI.tick();
+    if(p.dn!==wxDay)renderWx();   /* a new day: "today" and "tomorrow" move on */
   }
   setTimeout(tick,1000-(trueNow()%1000)+15);
 }
 
+renderWx();
 tick();
 syncClock();
 pull();
-document.addEventListener('visibilitychange',function(){if(!document.hidden){lastMinute=-1;syncClock();pull();}});
-window.addEventListener('online',function(){syncClock();pull();});
+loadWx();
+document.addEventListener('visibilitychange',function(){if(!document.hidden){lastMinute=-1;syncClock();pull();if(Date.now()-wxLoad>120000)loadWx();}});
+window.addEventListener('online',function(){syncClock();pull();loadWx();});
+setInterval(function(){if(!document.hidden&&Date.now()-wxLoad>=10*60*1000)loadWx();},60*1000);
 window.addEventListener('pageshow',function(e){if(e.persisted){lastMinute=-1;pull();}});
 setInterval(function(){if(!document.hidden)pull();},5*60*1000);
 setInterval(function(){if(!document.hidden)syncClock();},10*60*1000);

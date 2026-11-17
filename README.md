@@ -32,7 +32,7 @@ It compares 462 dates and times: Ekadashi tithi times and fast days for 2026 and
 
 ## The family's page
 
-`ghar.html` is a second page for the family at home, in Hindi and set larger for older eyes: India's time and the ship's time side by side, then today's panchang. It uses the same panchang files as the main page; the panel's styles are shared in `css/panchang.css`.
+`ghar.html` is a second page for the family at home, in Hindi and set larger for older eyes: India's time and the ship's time side by side, then today's panchang. At the end it gives the weather for Jaipur and Nagaur in a few plain lines: today, tomorrow, rain, sunrise, sunset and moonrise. Those figures are the same IMD ones the main page shows, read from `data/weather.json`; IMD's English forecast phrases are turned into Hindi piece by piece, and a phrase the page does not know is shown as IMD wrote it. It uses the same panchang files as the main page; the panel's styles are shared in `css/panchang.css`.
 
 The ship's time is the time on one phone, whose clock is set by hand. The main page knows how far that clock is from India's time, because it takes the true time from the network. Each time it is open with internet on, it leaves that one number where the family's page can read it (`js/ghadi.js`):
 
