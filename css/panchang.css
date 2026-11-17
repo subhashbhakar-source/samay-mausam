@@ -1,0 +1,136 @@
+/*
+ * Samay aur Mausam: how the panchang panel looks.
+ * Shared by the main page (index.html) and the family's page (ghar.html); each page sets the colour tokens itself.
+ */
+.panchang{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:1rem 1rem 1.15rem;display:flex;flex-direction:column;gap:.9rem;min-width:0}
+.pan-head{display:flex;align-items:baseline;justify-content:space-between;gap:.25rem 1rem;flex-wrap:wrap}
+.pan-head h2{font:500 2.1rem/1.2 var(--display)}
+.pan-place{color:var(--ink-3);font-size:.875rem}
+#pan-body{display:flex;flex-direction:column;gap:1.15rem;min-width:0}
+.pan-wait{color:var(--ink-2)}
+.pan-today{display:flex;flex-direction:column;gap:.65rem;min-width:0}
+.pan-tithi{display:flex;align-items:center;gap:.85rem}
+.pan-medal{flex:none;width:4.6rem;height:4.6rem;border-radius:50%;background:var(--wash);display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--rule)}
+.pan-names{min-width:0}
+.pan-rj{font:600 2.3rem/1.16 var(--display);text-wrap:balance}
+.pan-hi{color:var(--ink-2);line-height:1.35}
+.pan-line{line-height:1.5}
+.pan-soft{color:var(--ink-2);font-size:.9375rem}
+.pan-seasons{list-style:none;padding:0;margin:.1rem 0 0;display:flex;flex-direction:column;gap:.4rem;font-size:.9375rem;line-height:1.5;color:var(--ink-2);max-width:40rem}
+.pan-seasons li{padding-left:.7rem;border-left:3px solid var(--haldi)}
+.pan-seasons b{font-weight:600;color:var(--ink)}
+/* the family's own day */
+.pan-apna{display:flex;align-items:center;gap:.8rem;background:var(--teej-wash);border-radius:10px;padding:.65rem .85rem;min-width:0}
+.apna-icon{flex:none;display:grid}
+.apna-text{min-width:0}
+.apna-main{line-height:1.5}
+.apna-main b{font-weight:700;color:var(--gulabi)}
+.pan-apna.is-today{padding:.9rem .95rem}
+.pan-apna.is-today .apna-main{font:600 2.05rem/1.14 var(--display);text-wrap:balance}
+.apna-wish{color:var(--gulabi)}
+.apna-sub{color:var(--ink-2);line-height:1.5;margin-top:.3rem}
+.pan-kal{background:var(--wash);border-radius:8px;padding:.55rem .8rem;line-height:1.45;border-left:4px solid var(--bhagwa)}
+.pan-kal.is-ek{background:var(--ek-wash);border-left-color:var(--mor-teal)}
+.pan-kal.is-teej{background:var(--teej-wash);border-left-color:var(--gulabi)}
+.kal-gist{font-size:.9375rem;color:var(--ink-2);margin-bottom:.2rem}
+.kal-gist:last-child{margin-bottom:0}
+.pan-about{display:flex;flex-direction:column;gap:.45rem;color:var(--ink-2);font-size:.9688rem;line-height:1.6;max-width:40rem}
+
+.pi{display:block;flex:none}
+.pi .sa{fill:var(--bhagwa)}.pi .ku{fill:var(--kumkum)}.pi .ha{fill:var(--haldi)}.pi .tu{fill:var(--tulsi)}.pi .gu{fill:var(--gulabi)}
+.pi .mt{fill:var(--mor-teal)}.pi .md{fill:var(--mor-deep)}.pi .in{fill:var(--ink)}.pi .i2{fill:var(--ink-2)}.pi .sh{fill:var(--sheet)}.pi .wa{fill:var(--wash)}.pi .mi{fill:var(--mitti)}
+.pi .g1{fill:var(--genda-1)}.pi .g2{fill:var(--genda-2)}
+.pi .l{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pi .l-sa{stroke:var(--bhagwa)}.pi .l-ku{stroke:var(--kumkum)}.pi .l-ha{stroke:var(--haldi)}.pi .l-tu{stroke:var(--tulsi)}.pi .l-in{stroke:var(--ink)}.pi .l-i2{stroke:var(--ink-2)}.pi .l-sh{stroke:var(--sheet)}.pi .l-mi{stroke:var(--mitti)}
+
+/* an observance: a strip that says what kind of day it is, then its name, its deity and why it is kept */
+.occ{border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--page);min-width:0}
+.occ-strip{height:20px}
+.occ-strip.utsav{background:
+  radial-gradient(circle at 8px 10px,var(--genda-1c) 0 1.8px,transparent 2.3px) 0 0/32px 20px space no-repeat,
+  radial-gradient(circle at 8px 10px,var(--genda-1) 0 6px,transparent 6.5px) 0 0/32px 20px space no-repeat,
+  radial-gradient(circle at 24px 10px,var(--genda-2c) 0 1.8px,transparent 2.3px) 0 0/32px 20px space no-repeat,
+  radial-gradient(circle at 24px 10px,var(--genda-2) 0 6px,transparent 6.5px) 0 0/32px 20px space no-repeat,
+  linear-gradient(var(--dhaga),var(--dhaga)) 0 50%/100% 1.5px no-repeat}
+/* a row of lit diyas, and the colours of Holi */
+.occ-strip.utsav.diwali{background:
+  radial-gradient(ellipse 2.4px 4.2px at 11px 7.5px,#ffd54f 0 90%,transparent 100%) 0 0/22px 20px space no-repeat,
+  radial-gradient(ellipse 4px 6.2px at 11px 7.5px,#ff8f00 0 60%,transparent 100%) 0 0/22px 20px space no-repeat,
+  radial-gradient(ellipse 6.5px 3.4px at 11px 15.5px,#e0792c 0 92%,transparent 100%) 0 0/22px 20px space no-repeat,
+  #3b0d0c}
+.occ-strip.utsav.holi{background:
+  radial-gradient(circle at 7px 10px,#e91e63 0 5px,transparent 5.6px) 0 0/70px 20px repeat-x,
+  radial-gradient(circle at 21px 9px,#ffb300 0 6px,transparent 6.6px) 0 0/70px 20px repeat-x,
+  radial-gradient(circle at 35px 11px,#43a047 0 5px,transparent 5.6px) 0 0/70px 20px repeat-x,
+  radial-gradient(circle at 49px 9px,#1e88e5 0 6px,transparent 6.6px) 0 0/70px 20px repeat-x,
+  radial-gradient(circle at 63px 11px,#8e24aa 0 5px,transparent 5.6px) 0 0/70px 20px repeat-x,
+  var(--wash)}
+/* a row of peacock-feather eyes */
+.occ-strip.ekadashi{background:
+  radial-gradient(ellipse 2.6px 3.4px at 13px 11.6px,#1b2d8c 0 94%,transparent 100%) 0 0/26px 20px space no-repeat,
+  radial-gradient(ellipse 4.7px 5.7px at 13px 10.9px,#19b5c7 0 94%,transparent 100%) 0 0/26px 20px space no-repeat,
+  radial-gradient(ellipse 6.5px 7.5px at 13px 10.3px,#f2b01e 0 94%,transparent 100%) 0 0/26px 20px space no-repeat,
+  radial-gradient(ellipse 8.7px 9.4px at 13px 10px,#2e9d5b 0 94%,transparent 100%) 0 0/26px 20px space no-repeat,
+  #0b4a57}
+/* lehariya: the wave-dyed cloth worn on Teej */
+.occ-strip.teej{background:#ffca28 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='20'%3E%3Cg fill='none' stroke-width='3.4'%3E%3Cpath d='M-6 6.500l6-5 6 5 6-5 6 5 6-5 6 5' stroke='%23d81b60'/%3E%3Cpath d='M-6 13.500l6-5 6 5 6-5 6 5 6-5 6 5' stroke='%232e7d32'/%3E%3Cpath d='M-6 20.500l6-5 6 5 6-5 6 5 6-5 6 5' stroke='%23c62828'/%3E%3C/g%3E%3C/svg%3E") 0 0/24px 20px repeat-x}
+.occ-body{padding:.85rem .95rem 1rem;display:flex;flex-direction:column;gap:.65rem}
+.occ-head{display:flex;justify-content:space-between;gap:.75rem;align-items:flex-start}
+.occ-titles{min-width:0}
+.occ h3{font:600 1.85rem/1.18 var(--display);text-wrap:balance}
+.occ.big h3{font-size:2.1rem}
+.occ-kicker{font:600 2.35rem/1.14 var(--display);text-wrap:balance}
+.occ.ekadashi h3,.occ.teej h3{font:500 1.5rem/1.22 var(--display)}
+.occ-deity{color:var(--ink-2);font-size:.9375rem;line-height:1.4;margin-top:.15rem}
+.occ-icon{flex:none}
+.occ-text{line-height:1.62;max-width:40rem}
+.occ-note{font-weight:600;line-height:1.45}
+.occ-gist{font-size:1.0625rem;line-height:1.5;max-width:40rem}
+.occ-gist b{font-weight:700;color:var(--kumkum)}
+.occ.ekadashi .occ-gist b{color:var(--mor-ink)}
+.occ.teej .occ-gist b{color:var(--gulabi)}
+.occ-lines{list-style:none;margin:0;padding:.6rem 0 0;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:.35rem;font-size:.9375rem;line-height:1.5;color:var(--ink-2)}
+.occ.ekadashi{background:var(--ek-wash)}
+.occ.ekadashi .occ-kicker{color:var(--mor-ink)}
+.occ.teej{background:var(--teej-wash)}
+.occ.teej .occ-kicker{color:var(--gulabi)}
+.occ.vrat{background:transparent}
+.occ-art{display:flex;justify-content:center;padding:.1rem 0 .2rem}
+.jhula{width:min(62%,13.5rem);height:auto}
+
+.pan-ahead{display:flex;flex-direction:column;gap:.7rem;border-top:1px solid var(--rule);padding-top:1rem;min-width:0}
+.pan-h3{font:500 1.6rem/1.2 var(--display)}
+.pan-next{display:grid;gap:.5rem}
+.next{display:flex;gap:.7rem;align-items:center;border-radius:8px;padding:.55rem .75rem;font-size:.9688rem;line-height:1.45}
+.next.is-ek{background:var(--ek-wash)}
+.next.is-teej{background:var(--teej-wash)}
+.next-icon{flex:none;display:grid}
+.up-list{display:flex;flex-direction:column}
+.up-row{border-top:1px solid var(--rule)}
+.up-row > summary{display:grid;grid-template-columns:4.4rem minmax(0,1fr) auto;gap:.65rem;align-items:center;min-height:3.1rem;padding:.4rem 0 .4rem .6rem;cursor:pointer;list-style:none;border-left:3px solid transparent}
+.up-row > summary::-webkit-details-marker{display:none}
+.up-row.is-ek > summary{border-left-color:var(--mor-teal)}
+.up-row.is-teej > summary{border-left-color:var(--gulabi)}
+.up-date{display:flex;flex-direction:column;line-height:1.2}
+.up-date b{font-weight:600;font-size:.9688rem}
+.up-date span{color:var(--ink-3);font-size:.8125rem}
+.up-name{line-height:1.32;font-weight:500}
+.up-name small{display:block;font-size:.8125rem;font-weight:400;color:var(--ink-2);margin-top:.1rem}
+.up-name small.up-gist{font-size:.875rem;line-height:1.4;margin-top:.15rem}
+.up-name small.up-apna{font-size:.875rem;font-weight:700;color:var(--gulabi)}
+.next-apna{color:var(--gulabi)}
+.up-row.is-big .up-name,.up-row.is-ek .up-name,.up-row.is-teej .up-name{font-weight:700}
+.up-away{color:var(--ink-3);font-size:.8125rem;white-space:nowrap}
+.up-more{padding:.1rem 0 .9rem .75rem;display:flex;flex-direction:column;gap:.55rem}
+.up-who{display:flex;align-items:center;gap:.7rem}
+.up-tithi{font-weight:600;line-height:1.35}
+.up-month{font:600 .9375rem/1.3 var(--body);color:var(--ink-2);padding:1rem 0 .4rem}
+.up-year > summary{cursor:pointer;min-height:2.75rem;display:flex;align-items:center;color:var(--kumkum);font-weight:600;border-top:1px solid var(--rule)}
+.pan-tap,.pan-foot{color:var(--ink-3);font-size:.875rem;line-height:1.55;max-width:44rem}
+
+@media (min-width:60rem){
+  .panchang{padding:1.4rem 1.5rem 1.5rem}
+  #pan-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1.25rem 2.25rem;align-items:start}
+  .pan-ahead{border-top:0;padding-top:0;border-left:1px solid var(--rule);padding-left:2.25rem}
+  .pan-foot{grid-column:1/-1}
+}

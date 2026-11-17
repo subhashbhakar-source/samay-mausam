@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>समय और पंचांग</title>
+<meta name="description" content="भारत का समय, जहाज़ का टाइम और जयपुर का आज का पंचांग।">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#fff3dd" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c0907" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="समय पंचांग">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script defer src="js/astronomy.browser.min.js"></script>
+<script defer src="js/panchang.js"></script>
+<script defer src="js/panchang-hi.js"></script>
+<script defer src="js/panchang-ui.js"></script>
+<link id="webfonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700&family=Teko:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/panchang.css">
+<style>
+/* The family's page: India's time and the ship's time side by side, then today's panchang, all in Hindi.
+   Set a size larger than the main page and with stronger ink, so that it reads easily for older eyes.
+   The colour tokens below are the same as in index.html; the panchang panel is styled in css/panchang.css. */
+:root{
+  /* the colours of a Hindu home: bhagwa saffron, kumkum red and haldi yellow on chandan, with deep maroon ink */
+  --page:#fff3dd;       /* chandan */
+  --sheet:#fffbf3;      /* bulletin surface */
+  --ink:#3b0d0c;        /* deep maroon text */
+  --ink-2:#6b3a2a;      /* secondary text */
+  --ink-3:#86573f;      /* muted text */
+  --bhagwa:#e65100;     /* saffron: India's clock */
+  --kumkum:#b3121d;     /* vermilion: seconds, links */
+  --haldi:#f2a100;      /* turmeric: sun in the sky glyphs */
+  --mor:#1b72b5;        /* peacock blue: focus ring */
+  --temp:#e2640f;       /* chart mark: temperature */
+  --rainc:#1b72b5;      /* chart mark: rainfall */
+  --rule:#ecdcbc;       /* hairlines */
+  --wash:#fbe8c6;       /* quiet fill */
+  --good:#0ca30c;       /* status: no warning */
+  --warn:#fab219;       /* status: warning */
+  --warn-edge:#c27a00;
+  --genda-1:#f57c00; --genda-1c:#d84315; --genda-2:#ffca28; --genda-2c:#f59f00; --dhaga:#b98a52;
+  --gulabi:#c2185b;     /* rani pink: Teej */
+  --tulsi:#2e7d32;      /* leaf green */
+  --mor-deep:#1a3f8f; --mor-teal:#00838f;   /* peacock feather: Ekadashi */
+  --mor-ink:#0c5f73;    /* peacock text on light */
+  --mitti:#a8581f;      /* clay and wood */
+  --ek-wash:#e4f2ef; --teej-wash:#fde6ee;
+  --display:"Teko","Arial Narrow","Roboto Condensed",sans-serif;
+  --body:"Mukta","Noto Sans Devanagari",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --page:#1c0907; --sheet:#2a100c; --ink:#fff1da; --ink-2:#e6c9a6; --ink-3:#bd9a7a;
+    --bhagwa:#ff8a2b; --kumkum:#ff6b57; --haldi:#ffc53d; --mor:#5bb6e6; --temp:#e0651a; --rainc:#3d8fd1;
+    --rule:#4a2218; --wash:#3a1710; --good:#0ca30c; --warn:#fab219; --warn-edge:#fab219; --dhaga:#8a5a3a;
+    --gulabi:#ff86b3; --tulsi:#7cc47f; --mor-deep:#9bbcff; --mor-teal:#4dd0e1; --mor-ink:#7fd6e6; --mitti:#d08a4e; --ek-wash:#11302f; --teej-wash:#3b1626;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#1c0907; --sheet:#2a100c; --ink:#fff1da; --ink-2:#e6c9a6; --ink-3:#bd9a7a;
+  --bhagwa:#ff8a2b; --kumkum:#ff6b57; --haldi:#ffc53d; --mor:#5bb6e6; --temp:#e0651a; --rainc:#3d8fd1;
+  --rule:#4a2218; --wash:#3a1710; --good:#0ca30c; --warn:#fab219; --warn-edge:#fab219; --dhaga:#8a5a3a;
+    --gulabi:#ff86b3; --tulsi:#7cc47f; --mor-deep:#9bbcff; --mor-teal:#4dd0e1; --mor-ink:#7fd6e6; --mitti:#d08a4e; --ek-wash:#11302f; --teej-wash:#3b1626;
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;font-size:112.5%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--body);font-size:1rem;line-height:1.5}
+h1,h2,h3,p,ol,ul,dl,dd{margin:0}
+h1,h2,h3{text-wrap:balance}
+a{color:var(--kumkum);text-underline-offset:.15em}
+:focus-visible{outline:2px solid var(--mor);outline-offset:2px;border-radius:4px}
+
+.page{--ink-3:var(--ink-2);max-width:70rem;margin:0 auto;padding:.9rem .8rem 3rem;display:flex;flex-direction:column;gap:1.2rem}
+.top{display:flex;flex-direction:column;gap:.65rem}
+.name{font:500 1.6rem/1 var(--display);letter-spacing:.01em;padding-top:.2rem}
+.band{height:16px;background:
+  radial-gradient(circle at 8px 8px,var(--genda-1c) 0 1.8px,transparent 2.3px) 0 0/32px 16px space no-repeat,
+  radial-gradient(circle at 8px 8px,var(--genda-1) 0 6px,transparent 6.5px) 0 0/32px 16px space no-repeat,
+  radial-gradient(circle at 24px 8px,var(--genda-2c) 0 1.8px,transparent 2.3px) 0 0/32px 16px space no-repeat,
+  radial-gradient(circle at 24px 8px,var(--genda-2) 0 6px,transparent 6.5px) 0 0/32px 16px space no-repeat,
+  linear-gradient(var(--dhaga),var(--dhaga)) 0 50%/100% 1.5px no-repeat}
+
+/* the two clocks, side by side */
+.ghadi{display:grid;grid-template-columns:1fr 1fr;gap:0 .7rem;max-width:44rem}
+.gh{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:.7rem .75rem .8rem;display:flex;flex-direction:column;gap:.3rem;min-width:0}
+@supports (grid-template-rows:subgrid){.gh{display:grid;grid-template-rows:subgrid;grid-row:span 5;align-content:start}}
+.gh h2{font:700 1rem/1.3 var(--body);color:var(--ink)}
+.gh-time{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .4rem}
+.gh-part{font:600 1.05rem/1.2 var(--body)}
+.gh-num{font:500 2.7rem/1 var(--display);letter-spacing:.01em;padding-top:.1rem}
+#gh-in .gh-num{color:var(--bhagwa)}
+#gh-ship .gh-num{color:var(--mor-ink)}
+.gh-date{font-size:.95rem;line-height:1.35;color:var(--ink-2)}
+.gh-note{font-size:.95rem;line-height:1.4}
+.gh-soft{color:var(--ink-2);font-size:.9rem}
+.gh-msg{font-size:.95rem;line-height:1.45;color:var(--ink-2)}
+
+.foot{color:var(--ink-2);font-size:.9rem;line-height:1.55;max-width:44rem}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <h1 class="name">समय और पंचांग</h1>
+    <div class="band" aria-hidden="true"></div>
+  </header>
+
+  <section class="ghadi" aria-label="भारत का समय और जहाज़ का टाइम">
+    <article class="gh" id="gh-in">
+      <h2>भारत का समय</h2>
+      <p class="gh-time"><span class="gh-part" id="in-part"></span><span class="gh-num" id="in-num">&nbsp;</span></p>
+      <p class="gh-date" id="in-date">&nbsp;</p>
+    </article>
+    <article class="gh" id="gh-ship">
+      <h2>सुभाष के जहाज़ का टाइम</h2>
+      <p class="gh-time" id="ship-time" hidden><span class="gh-part" id="ship-part"></span><span class="gh-num" id="ship-num"></span></p>
+      <p class="gh-date" id="ship-date" hidden></p>
+      <p class="gh-note" id="ship-gap" hidden></p>
+      <p class="gh-note gh-soft" id="ship-heard" role="status" hidden></p>
+      <p class="gh-msg" id="ship-msg" role="status">जहाज़ का टाइम मंगाया जा रहा है।</p>
+    </article>
+  </section>
+
+  <section class="panchang" id="panchang" aria-labelledby="pan-h">
+    <div class="pan-head">
+      <h2 id="pan-h">आज का पंचांग</h2>
+      <p class="pan-place">जयपुर के सूर्योदय से</p>
+    </div>
+    <div id="pan-body"><p class="pan-wait">पंचांग गिना जा रहा है।</p></div>
+  </section>
+
+  <p class="foot">जहाज़ का टाइम सुभाष के फोन से आता है। जब वे इंटरनेट चालू करके अपना ऐप खोलते हैं, यह अपने आप ठीक हो जाता है; बीच के समय में यह पिछली खबर के हिसाब से चलता रहता है।</p>
+</div>
+
+<noscript><p style="padding:1rem">यह पेज चलाने के लिए JavaScript चालू होना चाहिए।</p></noscript>
+<script src="js/ghadi.js"></script>
+<script>
+(function(){
+'use strict';
+var MIN=60000,DAY=86400000,IST=330;
+var WD=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+var MO=['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
+function $(id){return document.getElementById(id);}
+function set(n,t){if(n&&n.textContent!==t)n.textContent=t;}
+function show(n,on){if(n&&n.hidden===on)n.hidden=!on;}
+function two(n){return n<10?'0'+n:''+n;}
+
+/* ---------- the true time: from the network, so a wrongly set phone does not matter ---------- */
+var skew=0,netTime=false,syncing=false;
+function trueNow(){return Date.now()+skew;}
+window.SamayApp={now:trueNow,is24:function(){return false;}};   /* the panchang panel reads the time from here; this page always says सुबह, दोपहर, शाम, रात */
+function syncClock(){
+  if(syncing)return;syncing=true;
+  var best=null,n=0;
+  function done(){
+    syncing=false;
+    if(best){if(!netTime||Math.abs(best.skew-skew)>1500)skew=best.skew;netTime=true;}
+    lastMinute=-1;
+  }
+  (function one(){
+    var t0=Date.now(),p0=performance.now();
+    fetch('manifest.webmanifest?clock='+t0+'.'+n,{method:'HEAD',cache:'no-store'}).then(function(r){
+      var p1=performance.now(),d=r.headers.get('date'),server=d?Date.parse(d):NaN;
+      if(!isFinite(server))throw new Error('no date');
+      var rtt=p1-p0,x={rtt:rtt,skew:server+500-t0-rtt/2};   /* the header is cut to whole seconds, hence the half second */
+      if(!best||x.rtt<best.rtt)best=x;
+    }).catch(function(){}).then(function(){n+=1;if(n<3&&(!best||best.rtt>200))setTimeout(one,150);else done();});
+  })();
+}
+
+/* ---------- words for a time ---------- */
+function parts(ms,off){
+  var d=new Date(ms+off*MIN);
+  return {mo:d.getUTCMonth(),d:d.getUTCDate(),wd:d.getUTCDay(),h:d.getUTCHours(),mi:d.getUTCMinutes(),dn:Math.floor((ms+off*MIN)/DAY)};
+}
+function partWord(h){return h<4?'रात':h<12?'सुबह':h<16?'दोपहर':h<20?'शाम':'रात';}
+function hm(p){return (p.h%12||12)+':'+two(p.mi);}
+function dateLine(p){return WD[p.wd]+', '+p.d+' '+MO[p.mo];}
+function span(min){
+  var h=Math.floor(min/60),m=min%60,s=[];
+  if(h)s.push(h+(h===1?' घंटा':' घंटे'));
+  if(m||!h)s.push(m+' मिनट');
+  return s.join(' ');
+}
+
+/* ---------- the ship's clock: a note left by Subhash's phone, read from the database (js/ghadi.js) ---------- */
+var G=window.Ghadi||null,key=null,note=null,got='wait',busy=false;
+if(G){
+  var fromLink=G.keyFrom(location.hash),stored=null;
+  try{stored=localStorage.getItem('sm.ghar.key');}catch(e){}
+  if(fromLink){
+    key=fromLink;
+    if(fromLink!==stored){try{localStorage.setItem('sm.ghar.key',fromLink);localStorage.removeItem('sm.ghar.note');}catch(e){}}
+  }else if(G.okKey(stored)){
+    key=stored;
+    try{history.replaceState(null,'','#k='+key);}catch(e){}   /* keep the key in the address, so a bookmark or a shared link still works */
+  }
+  if(key){try{note=G.clean(JSON.parse(localStorage.getItem('sm.ghar.note')||'null'));}catch(e){}}
+}
+function pull(){
+  if(!G||!key||busy)return;
+  busy=true;
+  G.read(key).then(function(v){
+    if(v){note=v;got='ok';try{localStorage.setItem('sm.ghar.note',JSON.stringify(v));}catch(e){}}
+    else got='none';
+  },function(){got='err';}).then(function(){busy=false;paintShip();});
+}
+function heard(now,t){
+  var ago=Math.max(0,now-t),pn=parts(now,IST),pt=parts(t,IST),days=pn.dn-pt.dn,at=partWord(pt.h)+' '+hm(pt);
+  if(ago<3*MIN)return 'यह समय अभी-अभी मिला है।';
+  if(days<=0)return 'यह समय आज '+at+' पर मिला।';
+  if(days===1)return 'यह समय कल '+at+' पर मिला।';
+  return 'यह समय '+days+' दिन पहले, '+pt.d+' '+MO[pt.mo]+' को मिला। जहाज़ की घड़ी बदली हो तो फर्क हो सकता है।';
+}
+function paintShip(){
+  var msg=null,now=trueNow(),p;
+  if(!G)msg='यह हिस्सा नहीं खुल सका। नेटवर्क आने पर पेज दोबारा खोलें।';
+  else if(!key)msg='सुभाष का भेजा हुआ लिंक खोलने पर यहां जहाज़ का टाइम दिखेगा।';
+  else if(!note)msg=got==='none'?'अभी सुभाष के फोन से समय नहीं आया है। जब वे इंटरनेट चालू करके अपना ऐप खोलेंगे, यहां दिखने लगेगा।'
+    :got==='err'?'अभी नेटवर्क नहीं मिल रहा। नेटवर्क आते ही जहाज़ का टाइम दिखेगा।'
+    :'जहाज़ का टाइम मंगाया जा रहा है।';
+  show($('ship-msg'),!!msg);
+  ['ship-time','ship-date','ship-gap','ship-heard'].forEach(function(id){show($(id),!msg);});
+  if(msg){set($('ship-msg'),msg);return;}
+  p=parts(now,IST+note.o);
+  set($('ship-part'),partWord(p.h));set($('ship-num'),hm(p));
+  set($('ship-date'),dateLine(p));
+  set($('ship-gap'),note.o===0?'भारत के समय के बराबर':'भारत से '+span(Math.abs(note.o))+(note.o<0?' पीछे':' आगे'));
+  set($('ship-heard'),heard(now,note.t));
+}
+
+/* ---------- the running clocks ---------- */
+var lastMinute=-1,lastDev=0,lastPerf=0;
+function tick(){
+  var dev=Date.now(),perf=performance.now();
+  if(lastDev&&Math.abs((dev-lastDev)-(perf-lastPerf))>2000)syncClock();   /* the phone's clock was changed, or the phone slept */
+  lastDev=dev;lastPerf=perf;
+  var now=trueNow(),p=parts(now,IST);
+  if(p.mi!==lastMinute){
+    lastMinute=p.mi;
+    set($('in-part'),partWord(p.h));set($('in-num'),hm(p));set($('in-date'),dateLine(p));
+    paintShip();
+    if(window.PanchangUI)window.PanchangUI.tick();
+  }
+  setTimeout(tick,1000-(trueNow()%1000)+15);
+}
+
+tick();
+syncClock();
+pull();
+document.addEventListener('visibilitychange',function(){if(!document.hidden){lastMinute=-1;syncClock();pull();}});
+window.addEventListener('online',function(){syncClock();pull();});
+window.addEventListener('pageshow',function(e){if(e.persisted){lastMinute=-1;pull();}});
+setInterval(function(){if(!document.hidden)pull();},5*60*1000);
+setInterval(function(){if(!document.hidden)syncClock();},10*60*1000);
+/* the panchang arrives in its own script files; if they never load, say so instead of waiting for ever */
+window.addEventListener('load',function(){
+  if(window.PanchangUI)return;
+  var b=$('pan-body');if(!b)return;
+  b.textContent='';
+  var q=document.createElement('p');q.className='pan-wait';q.textContent='पंचांग की फाइलें नहीं खुल सकीं। नेटवर्क आने पर पेज दोबारा खोलें।';b.appendChild(q);
+});
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Samay aur Mausam
 
-A small web app: clocks for India, Abu Dhabi and China, a Hindu panchang for Jaipur, and India Meteorological Department (IMD) weather for Jaipur and Nagaur.
+A small web app: clocks for India, Abu Dhabi and China, a Hindu panchang for Jaipur, and India Meteorological Department (IMD) weather for Jaipur and Nagaur. A second page, `ghar.html`, shows the family at home India's time, the ship's time and the panchang in Hindi.
 
 Open it: <https://subhashbhakar-source.github.io/samay-mausam/>
 
@@ -29,6 +29,33 @@ node scripts/check-panchang.cjs
 ```
 
 It compares 462 dates and times: Ekadashi tithi times and fast days for 2026 and 2027, Pradosh days for 2027, festival days from 2018 to 2033 for New Delhi, and Drik Panchang's 2027 list for one far-away city. All but one agree; that one sits four minutes from its boundary. Tithi times agree with the Swiss Ephemeris to within a few seconds and come out about a minute later than the times Drik Panchang prints.
+
+## The family's page
+
+`ghar.html` is a second page for the family at home, in Hindi and set larger for older eyes: India's time and the ship's time side by side, then today's panchang. It uses the same panchang files as the main page; the panel's styles are shared in `css/panchang.css`.
+
+The ship's time is the time on one phone, whose clock is set by hand. The main page knows how far that clock is from India's time, because it takes the true time from the network. Each time it is open with internet on, it leaves that one number where the family's page can read it (`js/ghadi.js`):
+
+- The note is two numbers: `o`, minutes ahead of India (negative when behind), and `t`, when it was sent. No name and no place.
+- It is kept in a Firebase Realtime Database that belongs to the owner of this app. A static page on GitHub Pages cannot store anything itself.
+- The note sits under a 24-character random key made on the sending phone. The key travels only in the link (`ghar.html#k=...`), which is sent by hand, and is remembered by each phone. It is not in this repository.
+- The family's page keeps the last note it read, so the ship's clock goes on running when either phone is offline, and it says when the note was last received.
+
+The database address in `js/ghadi.js` is not a secret. The database's rules are the lock:
+
+```json
+{
+  "rules": {
+    "ghadi": {
+      "$key": {
+        ".read": "$key.length >= 20",
+        ".write": "$key.length >= 20",
+        ".validate": "newData.hasChildren(['o','t']) && newData.child('o').isNumber() && newData.child('o').val() >= -900 && newData.child('o').val() <= 900 && newData.child('t').isNumber()"
+      }
+    }
+  }
+}
+```
 
 ## Sources
 
