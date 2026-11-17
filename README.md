@@ -18,8 +18,8 @@ Nothing else is needed: no server, no keys, no accounts.
 Neither Drik Panchang nor Kalnirnay offers a feed an app may read, so the page calculates the panchang itself, the way they do (drik ganit).
 
 - `js/panchang.js` is the calculation. The tithi is the angle between the Moon and the Sun divided into 12-degree steps. The lunar month is named from the Sun's sidereal sign at the new moons, with the Lahiri ayanamsa (the Government of India standard), and shown the North Indian (purnimanta) way. The day's tithi is the one running at sunrise in Jaipur. Each vrat and festival has a rule for which day it falls on (tithi at sunrise, at midday, in the afternoon, at dusk, at midnight or at moonrise), following the householder (smarta) rules; where Vaishnava temples keep another day, both are given.
-- `js/panchang-hi.js` holds the words: month and tithi names in Hindi and in Rajasthani (चैत, बैसाख, जेठ, आसाढ़, सावण, भादवा, आसोज, काती, मिगसर, पोह, माह, फागण; सुदी and बदी), and what each day is and why it is kept.
-- `js/panchang-ui.js` draws the panel under the India clock, with a symbol for each deity.
+- `js/panchang-hi.js` holds the words: month and tithi names in Hindi and in Rajasthani (चैत, बैसाख, जेठ, आसाढ़, सावण, भादवा, आसोज, काती, मिगसर, पोह, माह, फागण; सुदी and बदी), and what each day is and why it is kept. Every day also has one plain line saying what kind of day it is (an अबूझ सावा, a fast, a day for the ancestors), shown under its name in the list. The running seasons (चातुर्मास, मलमास, श्राद्ध पक्ष, होलाष्टक, नवरात्रि, अधिक मास) each have a line on what they mean for the household. The family's own day, kept by tithi, is in `T.apna`; it carries no names because the page is public.
+- `js/panchang-ui.js` draws the panel under the India clock, with a symbol for each deity. The season notes begin and end on the worked-out fast and festival days, so they agree with the cards.
 - `js/astronomy.browser.min.js` is [Astronomy Engine](https://github.com/cosinekitty/astronomy) 2.1.19 by Don Cross (MIT licence, notice inside the file). It gives the positions of the Sun and Moon.
 
 To check the calculation against published dates:

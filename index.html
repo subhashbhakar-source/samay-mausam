@@ -210,11 +210,24 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .pan-hi{color:var(--ink-2);line-height:1.35}
 .pan-line{line-height:1.5}
 .pan-soft{color:var(--ink-2);font-size:.9375rem}
-.pan-chips{list-style:none;padding:0;margin:.1rem 0 0;display:flex;flex-wrap:wrap;gap:.4rem}
-.pan-chips li{background:var(--wash);border-radius:999px;padding:.22rem .75rem;font-size:.875rem;line-height:1.4;color:var(--ink-2)}
+.pan-seasons{list-style:none;padding:0;margin:.1rem 0 0;display:flex;flex-direction:column;gap:.4rem;font-size:.9375rem;line-height:1.5;color:var(--ink-2);max-width:40rem}
+.pan-seasons li{padding-left:.7rem;border-left:3px solid var(--haldi)}
+.pan-seasons b{font-weight:600;color:var(--ink)}
+/* the family's own day */
+.pan-apna{display:flex;align-items:center;gap:.8rem;background:var(--teej-wash);border-radius:10px;padding:.65rem .85rem;min-width:0}
+.apna-icon{flex:none;display:grid}
+.apna-text{min-width:0}
+.apna-main{line-height:1.5}
+.apna-main b{font-weight:700;color:var(--gulabi)}
+.pan-apna.is-today{padding:.9rem .95rem}
+.pan-apna.is-today .apna-main{font:600 2.05rem/1.14 var(--display);text-wrap:balance}
+.apna-wish{color:var(--gulabi)}
+.apna-sub{color:var(--ink-2);line-height:1.5;margin-top:.3rem}
 .pan-kal{background:var(--wash);border-radius:8px;padding:.55rem .8rem;line-height:1.45;border-left:4px solid var(--bhagwa)}
 .pan-kal.is-ek{background:var(--ek-wash);border-left-color:var(--mor-teal)}
 .pan-kal.is-teej{background:var(--teej-wash);border-left-color:var(--gulabi)}
+.kal-gist{font-size:.9375rem;color:var(--ink-2);margin-bottom:.2rem}
+.kal-gist:last-child{margin-bottom:0}
 .pan-about{display:flex;flex-direction:column;gap:.45rem;color:var(--ink-2);font-size:.9688rem;line-height:1.6;max-width:40rem}
 
 .pi{display:block;flex:none}
@@ -266,6 +279,10 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .occ-icon{flex:none}
 .occ-text{line-height:1.62;max-width:40rem}
 .occ-note{font-weight:600;line-height:1.45}
+.occ-gist{font-size:1.0625rem;line-height:1.5;max-width:40rem}
+.occ-gist b{font-weight:700;color:var(--kumkum)}
+.occ.ekadashi .occ-gist b{color:var(--mor-ink)}
+.occ.teej .occ-gist b{color:var(--gulabi)}
 .occ-lines{list-style:none;margin:0;padding:.6rem 0 0;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:.35rem;font-size:.9375rem;line-height:1.5;color:var(--ink-2)}
 .occ.ekadashi{background:var(--ek-wash)}
 .occ.ekadashi .occ-kicker{color:var(--mor-ink)}
@@ -293,6 +310,9 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .up-date span{color:var(--ink-3);font-size:.8125rem}
 .up-name{line-height:1.32;font-weight:500}
 .up-name small{display:block;font-size:.8125rem;font-weight:400;color:var(--ink-2);margin-top:.1rem}
+.up-name small.up-gist{font-size:.875rem;line-height:1.4;margin-top:.15rem}
+.up-name small.up-apna{font-size:.875rem;font-weight:700;color:var(--gulabi)}
+.next-apna{color:var(--gulabi)}
 .up-row.is-big .up-name,.up-row.is-ek .up-name,.up-row.is-teej .up-name{font-weight:700}
 .up-away{color:var(--ink-3);font-size:.8125rem;white-space:nowrap}
 .up-more{padding:.1rem 0 .9rem .75rem;display:flex;flex-direction:column;gap:.55rem}

@@ -45,6 +45,12 @@
     for (k = 0; k < 8; k++) { a = k * Math.PI / 4; s += '<circle cx="' + (24 + 8.6 * Math.cos(a)).toFixed(1) + '" cy="' + (24 + 8.6 * Math.sin(a)).toFixed(1) + '" r="3.3"/>'; }
     return s;
   }
+  /* a garland: beads strung on a ring */
+  function mala(cx, cy, r, n, c1, c2) {
+    var s = '<circle class="l l-tu" cx="' + cx + '" cy="' + cy + '" r="' + r + '" stroke-width="1.200"/>', k, a;
+    for (k = 0; k < n; k++) { a = k * 2 * Math.PI / n; s += '<circle class="' + (k % 2 ? c1 : c2) + '" cx="' + (cx + r * Math.cos(a)).toFixed(1) + '" cy="' + (cy + r * Math.sin(a)).toFixed(1) + '" r="2.700"/>'; }
+    return s;
+  }
   var FOOT = '<path d="M15.5 43c-3.9 0-5.9-4-5.9-10.200 0-6 2.100-10.600 5.900-10.600s5.900 4.600 5.900 10.600c0 6.200-2 10.200-5.900 10.200z"/><circle cx="21" cy="17.800" r="2.500"/><circle cx="16.800" cy="15.200" r="2.100"/><circle cx="13" cy="15.700" r="1.900"/><circle cx="9.800" cy="17.600" r="1.700"/><circle cx="7.500" cy="20.600" r="1.500"/>';
   var ICONS = {
     surya: '<circle class="ha" cx="24" cy="24" r="9.2"/><circle class="l l-sa" cx="24" cy="24" r="9.2" stroke-width="2"/><path class="l l-sa" stroke-width="2.6" d="' + rays() + '"/>',
@@ -65,6 +71,7 @@
     tulsi: '<rect class="mi" x="14" y="31" width="20" height="10.300" rx="1.600"/><rect class="mi" x="10.500" y="41" width="27" height="3.600" rx="1.300"/><path class="ha" d="M21 41v-4.300a3 3 0 0 1 6 0V41z"/><path class="l l-tu" stroke-width="1.900" d="M24 31V9.500M24 25l-6.500-5M24 25l6.500-5M24 18l-5.500-4.500M24 18l5.500-4.500"/><g class="tu"><ellipse cx="16" cy="18.500" rx="4.300" ry="2.500" transform="rotate(38 16 18.500)"/><ellipse cx="32" cy="18.500" rx="4.300" ry="2.500" transform="rotate(-38 32 18.500)"/><ellipse cx="17.300" cy="12.300" rx="3.900" ry="2.300" transform="rotate(40 17.300 12.300)"/><ellipse cx="30.700" cy="12.300" rx="3.900" ry="2.300" transform="rotate(-40 30.700 12.300)"/><ellipse cx="24" cy="8" rx="2.400" ry="4"/></g><circle class="gu" cx="24" cy="3.200" r="1.700"/>',
     rakhi: '<path class="l l-ku" stroke-width="2.300" d="M2.500 24c4.500-3 7.500 3 12 0M33.500 24c4.500-3 7.500 3 12 0"/><g class="sa">' + petals() + '</g><circle class="ha" cx="24" cy="24" r="7.200"/><circle class="ku" cx="24" cy="24" r="3.300"/>',
     agni: '<path class="sa" d="M24 2.500c8.500 9.500 13.500 16.500 13.500 24.700 0 7.300-6.200 12.300-13.500 12.300s-13.500-5-13.500-12.300c0-5 2.200-8.500 5.200-11.500 0 4 1.100 6.300 3.100 7.300-1-7.500 1-13.500 5.200-20.500z"/><path class="ha" d="M24 17c4.200 5 6.300 8.300 6.300 12.300 0 3.700-2.800 6.200-6.300 6.200s-6.300-2.500-6.300-6.200c0-2.100 1-4.100 2.600-5.700.500 2.100 1.300 3.200 2.100 3.700-.500-3.700 0-6.700 1.600-10.300z"/><path class="l l-mi" stroke-width="3.500" d="M6.500 44.500l35-6.500M41.500 44.500l-35-6.500"/>',
+    varmala: mala(17.5, 19.5, 12.5, 14, 'g1', 'g2') + mala(30.5, 28.5, 12.5, 14, 'gu', 'ha'),
     krishna: '<path class="l l-tu" stroke-width="1.700" d="M12 33.500C15.500 26 21 18.500 28 12.500"/><g transform="rotate(40 31 12.500)"><ellipse class="tu" cx="31" cy="12.500" rx="8.300" ry="11.500"/><ellipse class="ha" cx="31" cy="13.300" rx="5.900" ry="8"/><ellipse class="mt" cx="31" cy="14" rx="4.500" ry="6"/><ellipse class="md" cx="31" cy="15" rx="2.700" ry="3.600"/></g><path class="l l-ha" stroke-width="5.200" d="M5.500 33.500l37 7.500"/><g class="in"><circle cx="16" cy="35.700" r="1.150"/><circle cx="22" cy="36.900" r="1.150"/><circle cx="28" cy="38.100" r="1.150"/><circle cx="34" cy="39.300" r="1.150"/></g><path class="l l-ku" stroke-width="1.900" d="M9.300 31.500l-1.100 5.300M40 37.700l-1.100 5.300"/>'
   };
   function icon(name, size) {
@@ -134,11 +141,12 @@
 
   function describe(e) {
     var base = T.events[e.id] || {}, g = eng.ymd(e.dn), o, lines = [], ek;
-    o = { id: e.id, dn: e.dn, name: base.name, deity: base.deity, icon: base.icon, level: base.level || 1, look: base.look || 'vrat', text: base.text, more: null, lines: lines, e: e };
+    o = { id: e.id, dn: e.dn, name: base.name, deity: base.deity, icon: base.icon, level: base.level || 1, look: base.look || 'vrat', text: base.text, gist: base.gist || null, more: null, lines: lines, e: e };
+    o.apna = T.apnaOf ? T.apnaOf(e) : null;
 
     if (e.id === 'ekadashi') {
       ek = T.ekadashiOf(e);
-      o.name = ek.name; o.text = ek.text; o.more = T.ekadashiCommon; o.deity = 'भगवान विष्णु, श्री कृष्ण'; o.icon = 'krishna'; o.level = 3; o.look = 'ekadashi';
+      o.name = ek.name; o.text = ek.text; o.gist = ek.gist || null; o.more = T.ekadashiCommon; o.deity = 'भगवान विष्णु, श्री कृष्ण'; o.icon = 'krishna'; o.level = 3; o.look = 'ekadashi';
       o.sub = T.dayName(e.month, e.adhik, e.shukla ? 10 : 25, true);
       lines.push('व्रत का दिन (गृहस्थ): ' + dateLong(e.dn));
       if (e.alt != null) lines.push('वैष्णव संप्रदाय में व्रत: ' + dateLong(e.alt));
@@ -161,13 +169,13 @@
     if (e.id === 'purnima') { o.name = (e.adhik ? T.adhik + ' ' : '') + T.monthRj[e.month] + ' पूनम'; lines.push(tithiSpan(e, 'पूनम तिथि')); return o; }
     if (e.id === 'amavasya') {
       o.name = (e.adhik ? T.adhik + ' ' : '') + T.monthRj[e.month] + ' अमावस';
-      if (g.wd === 1) { o.name = 'सोमवती अमावस (' + T.monthRj[e.month] + ')'; o.more = T.somvati; }
-      if (g.wd === 6) { o.name = 'शनि अमावस (' + T.monthRj[e.month] + ')'; o.more = T.shaniAmavas; }
+      if (g.wd === 1) { o.name = 'सोमवती अमावस (' + T.monthRj[e.month] + ')'; o.more = T.somvati; o.gist = T.somvatiGist || o.gist; }
+      if (g.wd === 6) { o.name = 'शनि अमावस (' + T.monthRj[e.month] + ')'; o.more = T.shaniAmavas; o.gist = T.shaniAmavasGist || o.gist; }
       lines.push(tithiSpan(e, 'अमावस तिथि'));
       return o;
     }
     if (e.id === 'chauth') {
-      if (g.wd === 2) { o.name = 'अंगारकी संकष्टी चौथ'; o.more = T.angarki; }
+      if (g.wd === 2) { o.name = 'अंगारकी संकष्टी चौथ'; o.more = T.angarki; o.gist = T.angarkiGist || o.gist; }
       lines.push('जयपुर में चांद निकलेगा: लगभग ' + hm(eng.moonrise(e.dn)));
       return o;
     }
@@ -196,6 +204,23 @@
     return o;
   }
 
+  /* ---------- the day in one line, and the family's own day ---------- */
+  /* "<what the day is>: <what it means>", with the first part in bold */
+  function gistNode(text, cls) {
+    var i = text.indexOf(': ');
+    if (i < 0) return p(cls, text);
+    return el('p', { class: cls }, el('b', { text: text.slice(0, i + 1) }), text.slice(i + 1));
+  }
+  function shortName(name) { return String(name).replace(/\s*\(.*\)\s*$/, ''); }
+  function apnaBand(a, o, k) {
+    var main = k === 0
+      ? el('p', { class: 'apna-main' }, a.today + ' ', el('span', { class: 'apna-wish', text: a.wish }))
+      : el('p', { class: 'apna-main' }, away(o.dn) + ', ' + dateLong(o.dn) + ' को ' + shortName(o.name) + ' है: ', el('b', { text: a.ahead }), ' ' + a.aheadWish);
+    return el('div', { class: 'pan-apna' + (k === 0 ? ' is-today' : '') },
+      el('div', { class: 'apna-icon' }, icon(a.icon, k === 0 ? 64 : 46)),
+      el('div', { class: 'apna-text' }, main, k === 0 ? p('apna-sub', a.bless) : null));
+  }
+
   /* ---------- cards ---------- */
   function strip(look) { return el('div', { class: 'occ-strip ' + look, 'aria-hidden': 'true' }); }
 
@@ -214,6 +239,7 @@
       el('div', { class: 'occ-icon' }, icon(o.icon, o.level >= 3 ? 64 : 52)));
 
     body = el('div', { class: 'occ-body' }, head);
+    if (o.gist) body.appendChild(gistNode(o.gist, 'occ-gist'));
     if (o.id === 'hariyali-teej' || o.id === 'kajari-teej') { art = el('div', { class: 'occ-art' }, jhula()); body.appendChild(art); }
     if (mode === 'alt' && o.id === 'ekadashi') body.appendChild(p('occ-note', 'गृहस्थों का व्रत कल था; आज वैष्णव संप्रदाय का व्रत है।'));
     if (o.text) body.appendChild(p('occ-text', o.text));
@@ -232,6 +258,8 @@
     var sum = el('summary', null,
       el('span', { class: 'up-date' }, el('b', { text: g.d + ' ' + T.gregMonthShort[g.m - 1] }), el('span', { text: T.weekdayShort[g.wd] })),
       el('span', { class: 'up-name' }, o.name,
+        o.apna ? el('small', { class: 'up-apna', text: o.apna.tag }) : null,
+        o.gist ? el('small', { class: 'up-gist', text: o.gist }) : null,
         o.e.alt != null && (o.id === 'ekadashi' || o.id === 'janmashtami') ? el('small', { text: 'वैष्णव: ' + dateShort(o.e.alt) }) : null),
       el('span', { class: 'up-away', text: away(o.dn) }));
     var d = el('details', { class: cls }, sum), built = false;
@@ -252,17 +280,63 @@
     return d;
   }
 
-  /* ---------- seasons that are running ---------- */
+  /* ---------- seasons that are running: the name, what it means, and the day it ends where that is known ---------- */
+  function nextDay(pred, field) {
+    var i, e;
+    if (S.partial || !S.events) return '';
+    for (i = 0; i < S.events.length; i++) {
+      e = S.events[i];
+      if (e.dn >= S.dn && pred(e)) return dateShort(field ? eng.civil(e[field]) : e.dn);
+    }
+    return '';
+  }
+  /* Is today inside a stretch that runs from one worked-out day to another? The fast and festival days decide it,
+     so the note agrees with the cards below. Returns null while the year ahead is still being worked out. */
+  function inSpan(isStart, isEnd, endCounts) {
+    var st = null, en = null, i, e;
+    if (S.partial || !S.events) return null;
+    for (i = 0; i < S.events.length; i++) {
+      e = S.events[i];
+      if (e.dn < S.dn) continue;
+      if (st == null && isStart(e)) st = e.dn;
+      if (en == null && isEnd(e)) en = e.dn;
+    }
+    if (en == null) return null;
+    if (!endCounts && en === S.dn) return false;
+    return st == null || st > en || st === S.dn;
+  }
+  function named(id) { return function (e) { return e.id === id; }; }
+  function gyaras(month) { return function (e) { return e.id === 'ekadashi' && !e.adhik && e.shukla && e.month === month; }; }
   function seasons(d) {
     var out = [], k = d.tithi % 15, pos = d.month * 30 + (d.shukla ? 15 + k : k);
-    var sign = Math.floor(eng._sunSid(d.sunrise) / 30);
-    if (d.adhik) out.push('अधिक मास (पुरुषोत्तम मास)');
-    if ((d.month === 6 || d.month === 0) && d.shukla && k <= 8 && !d.adhik) out.push('नवरात्रि');
-    if (d.month === 6 && !d.shukla && !d.adhik) out.push('श्राद्ध पक्ष');
-    if (d.month === 4) out.push('सावण का महीना');
-    if (d.month === 7 && !d.adhik) out.push('काती का महीना');
-    if (pos >= 115 && pos < 235) out.push('चातुर्मास');
-    if (sign === 8 || sign === 11) out.push('मलमास (खरमास): शादियों के मुहूर्त नहीं');
+    var sign = Math.floor(eng._sunSid(d.sunrise) / 30), on, on2;
+    function add(key, till) {
+      var s = T.season && T.season[key];
+      if (s) out.push({ label: s[0], text: s[1].replace('{till}', till ? ' (' + till + ')' : '') });
+    }
+    if (d.adhik) add('adhik');
+
+    /* Navratri: from Ghat Sthapana to Navami, in Chaitra and in Asoj */
+    on = inSpan(named('navratri'), named('maha-navami'), true); on2 = inSpan(named('nav-samvat'), named('ram-navami'), true);
+    if (on == null || on2 == null ? (d.month === 6 || d.month === 0) && d.shukla && k <= 8 && !d.adhik : on || on2) add('navratri');
+
+    /* Shraddh Paksha: to Sarvapitru Amavas */
+    on = inSpan(named('shraddh-start'), named('sarvapitru-amavas'), true);
+    if (on == null ? d.month === 6 && !d.shukla && !d.adhik : on) add('shraddh');
+
+    if (d.month === 4) add('sawan');
+    if (d.month === 7 && !d.adhik) add('kati');
+
+    /* Chaturmas: from the day Dev Shayani Gyaras is kept to the day before Dev Uthani Gyaras is kept */
+    on = inSpan(gyaras(3), gyaras(7), false);
+    if (on == null ? pos >= 115 && pos < 235 : on) add('chaturmas', nextDay(gyaras(7)));
+
+    /* Holashtak: from Fagan Sudi Atham to the evening the Holi is lit */
+    on = d.month === 11 && d.shukla && k >= 7 && !d.adhik;
+    if (on && !S.partial && S.events) on = S.events.some(function (e) { return e.id === 'holika-dahan' && e.dn >= S.dn && e.dn <= S.dn + 9; });
+    if (on) add('holashtak');
+    if (sign === 8) add('malmasDhanu', nextDay(named('makar-sankranti'), 'at'));
+    if (sign === 11) add('malmasMeen', dateShort(eng.civil(eng._crossSun(0, d.sunrise))));
     return out;
   }
 
@@ -297,17 +371,27 @@
       now < d.sunrise ? p('pan-line pan-soft', 'पंचांग का दिन सूर्योदय (' + hm(d.sunrise) + ') से गिना जाता है।') : null,
       p('pan-line pan-soft', 'जयपुर में सूर्योदय ' + hm(d.sunrise) + ', सूर्यास्त ' + hm(d.sunset)));
 
-    var chips = seasons(d);
-    if (chips.length) box.appendChild(el('ul', { class: 'pan-chips' }, chips.map(function (t) { return el('li', { text: t }); })));
+    /* the family's own day: on the day itself, and in advance for the week before */
+    S.events.forEach(function (ev) {
+      var a = T.apnaOf ? T.apnaOf(ev) : null, k = ev.dn - S.dn;
+      if (a && k >= 0 && k <= a.days) box.appendChild(apnaBand(a, describe(ev), k));
+    });
+
+    var running = seasons(d);
+    if (running.length) box.appendChild(el('ul', { class: 'pan-seasons' }, running.map(function (r) { return el('li', null, el('b', { text: r.label + ': ' }), r.text); })));
 
     todays.forEach(function (x) { box.appendChild(card(x.o, x.mode)); });
 
     /* tomorrow, said in advance for fasts and big days */
     var tm = tomorrows.filter(function (o) { return o.level >= 2; }).sort(function (a, b) { return b.level - a.level; });
     if (tm.length) {
-      box.appendChild(el('p', { class: 'pan-kal' + (tm[0].look === 'ekadashi' ? ' is-ek' : tm[0].look === 'teej' ? ' is-teej' : '') },
-        el('b', { text: 'कल: ' }), tm.map(function (o) { return o.name; }).join('; '),
-        tm.some(function (o) { return o.id === 'hariyali-teej' || o.id === 'kajari-teej'; }) ? '। आज सिंजारा है।' : ''));
+      var kal = el('div', { class: 'pan-kal' + (tm[0].look === 'ekadashi' ? ' is-ek' : tm[0].look === 'teej' ? ' is-teej' : '') });
+      tm.forEach(function (o) {
+        kal.appendChild(el('p', null, el('b', { text: 'कल: ' }), o.name));
+        if (o.gist) kal.appendChild(p('kal-gist', o.gist));
+      });
+      if (tm.some(function (o) { return o.id === 'hariyali-teej' || o.id === 'kajari-teej'; })) kal.appendChild(p(null, 'आज सिंजारा है।'));
+      box.appendChild(kal);
     }
 
     /* the weekday and the tithi, in plain words */
@@ -332,7 +416,8 @@
 
     var two = el('div', { class: 'pan-next' });
     if (nextEk) two.appendChild(el('p', { class: 'next is-ek' }, el('span', { class: 'next-icon' }, icon('krishna', 34)),
-      el('span', null, el('b', { text: 'अगली ग्यारस: ' }), dateLong(nextEk.dn) + ' (' + away(nextEk.dn) + ')', el('br'), nextEk.name)));
+      el('span', null, el('b', { text: 'अगली ग्यारस: ' }), dateLong(nextEk.dn) + ' (' + away(nextEk.dn) + ')', el('br'), nextEk.name,
+        nextEk.apna ? [el('br'), el('b', { class: 'next-apna', text: nextEk.apna.tag })] : null)));
     if (nextTeej) two.appendChild(el('p', { class: 'next is-teej' }, el('span', { class: 'next-icon' }, icon(nextTeej.icon, 34)),
       el('span', null, el('b', { text: 'अगली तीज: ' }), dateLong(nextTeej.dn) + ' ' + eng.ymd(nextTeej.dn).y + ' (' + away(nextTeej.dn) + ')', el('br'), nextTeej.name)));
     box.appendChild(two);
