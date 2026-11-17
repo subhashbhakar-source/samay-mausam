@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Samay aur Mausam</title>
+<meta name="description" content="Clocks for India, Abu Dhabi and China, with India Meteorological Department weather for Jaipur and Nagaur.">
+<meta name="theme-color" content="#fff3dd" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c0907" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Samay Mausam">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="webfonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700&family=Teko:wght@400;500;600&display=swap">
+<style>
+:root{
+  /* Plan: a station clock in India's time fills the top, with Abu Dhabi and China hanging off it.
+     Below, two IMD bulletin sheets (Jaipur, Nagaur): side by side on a wide screen, stacked on a phone.
+     Colours are the ones of a Hindu home: bhagwa saffron, kumkum red and haldi yellow on chandan,
+     with deep maroon ink and a marigold garland strung under the name. */
+  --page:#fff3dd;       /* chandan */
+  --sheet:#fffbf3;      /* bulletin surface */
+  --ink:#3b0d0c;        /* deep maroon text */
+  --ink-2:#6b3a2a;      /* secondary text */
+  --ink-3:#86573f;      /* muted text */
+  --bhagwa:#e65100;     /* saffron: India's clock */
+  --kumkum:#b3121d;     /* vermilion: seconds, links */
+  --haldi:#f2a100;      /* turmeric: sun in the sky glyphs */
+  --mor:#1b72b5;        /* peacock blue: focus ring */
+  --temp:#e2640f;       /* chart mark: temperature */
+  --rainc:#1b72b5;      /* chart mark: rainfall */
+  --rule:#ecdcbc;       /* hairlines */
+  --wash:#fbe8c6;       /* quiet fill */
+  --good:#0ca30c;       /* status: no warning */
+  --warn:#fab219;       /* status: warning */
+  --warn-edge:#c27a00;
+  --genda-1:#f57c00; --genda-1c:#d84315; --genda-2:#ffca28; --genda-2c:#f59f00; --dhaga:#b98a52;
+  --display:"Teko","Arial Narrow","Roboto Condensed",sans-serif;
+  --body:"Mukta","Noto Sans Devanagari",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --page:#1c0907; --sheet:#2a100c; --ink:#fff1da; --ink-2:#e6c9a6; --ink-3:#bd9a7a;
+    --bhagwa:#ff8a2b; --kumkum:#ff6b57; --haldi:#ffc53d; --mor:#5bb6e6; --temp:#e0651a; --rainc:#3d8fd1;
+    --rule:#4a2218; --wash:#3a1710; --good:#0ca30c; --warn:#fab219; --warn-edge:#fab219; --dhaga:#8a5a3a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#1c0907; --sheet:#2a100c; --ink:#fff1da; --ink-2:#e6c9a6; --ink-3:#bd9a7a;
+  --bhagwa:#ff8a2b; --kumkum:#ff6b57; --haldi:#ffc53d; --mor:#5bb6e6; --temp:#e0651a; --rainc:#3d8fd1;
+  --rule:#4a2218; --wash:#3a1710; --good:#0ca30c; --warn:#fab219; --warn-edge:#fab219; --dhaga:#8a5a3a;
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--body);font-size:1rem;line-height:1.45}
+h1,h2,h3,p,ol,ul,dl,dd{margin:0}
+h1,h2,h3{text-wrap:balance}
+a{color:var(--kumkum);text-underline-offset:.15em}
+:focus-visible{outline:2px solid var(--mor);outline-offset:2px;border-radius:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+.page{max-width:70rem;margin:0 auto;padding:1rem 1rem 3rem;display:flex;flex-direction:column;gap:1.75rem}
+
+/* ---------- top ---------- */
+.top{display:flex;flex-direction:column;gap:.75rem}
+.top-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.name{font:500 1.75rem/1 var(--display);letter-spacing:.01em;padding-top:.2rem}
+.fmt{display:inline-flex;background:var(--wash);border-radius:999px;padding:3px;flex:none}
+.fmt button{font:500 .9rem/1 var(--body);border:0;background:transparent;color:var(--ink-2);min-height:2.25rem;padding:0 .9rem;border-radius:999px;cursor:pointer}
+.fmt button[aria-pressed="true"]{background:var(--sheet);color:var(--ink);box-shadow:0 0 0 1px var(--rule)}
+.band{height:16px;background:
+  radial-gradient(circle at 8px 8px,var(--genda-1c) 0 1.8px,transparent 2.3px) 0 0/32px 16px space no-repeat,
+  radial-gradient(circle at 8px 8px,var(--genda-1) 0 6px,transparent 6.5px) 0 0/32px 16px space no-repeat,
+  radial-gradient(circle at 24px 8px,var(--genda-2c) 0 1.8px,transparent 2.3px) 0 0/32px 16px space no-repeat,
+  radial-gradient(circle at 24px 8px,var(--genda-2) 0 6px,transparent 6.5px) 0 0/32px 16px space no-repeat,
+  linear-gradient(var(--dhaga),var(--dhaga)) 0 50%/100% 1.5px no-repeat}
+
+/* ---------- clocks ---------- */
+.clocks{display:grid;gap:1.25rem}
+.clock h2{font:500 2.1rem/1 var(--display);display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap}
+.clock h2 span{font:500 1.05rem/1.2 var(--body);color:var(--ink-2)}
+.clock-date{color:var(--ink-2);font-size:.95rem}
+.clock-note{color:var(--ink-2);font-size:.95rem}
+.clock-note b{font-weight:600;color:var(--ink)}
+.hero-box{width:100%;margin:.35rem 0 .1rem}
+.digits{display:inline-flex;align-items:baseline;font-family:var(--display);font-weight:600;line-height:.86;white-space:nowrap;color:var(--ink)}
+.digits .c{display:inline-block;width:1ch;text-align:center}
+.digits .colon{display:inline-block;width:.5ch;text-align:center;position:relative;top:-.05em}
+.digits .ampm{font:600 .19em/1 var(--body);margin-left:.5em;color:var(--ink-2)}
+#digits-in{font-size:6.5rem;color:var(--bhagwa);margin-bottom:-.09em}
+#digits-in .sec{font-size:.4em;font-weight:500;margin-left:.3em;color:var(--kumkum);display:inline-flex}
+.satellites{display:grid;grid-template-columns:1fr 1fr;gap:0 1.25rem;padding-top:1.1rem;border-top:1px solid var(--rule)}
+@supports (grid-template-rows:subgrid){.satellites .clock{display:grid;grid-template-rows:subgrid;grid-row:span 4;align-items:start}}
+.satellites .digits{font-size:clamp(3.25rem,17vw,5.25rem);margin:.3rem 0 .05rem}
+.satellites .clock h2{font-size:1.75rem}
+
+/* ---------- weather ---------- */
+.weather{display:flex;flex-direction:column;gap:.9rem}
+.weather > h2{font:500 2.1rem/1 var(--display)}
+.feedline{color:var(--ink-2);font-size:.95rem;display:flex;gap:.45rem;align-items:flex-start;min-height:1.4rem}
+.feedline svg{flex:none;margin-top:.12rem}
+.sheets{display:grid;gap:1.25rem}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:1.1rem 1rem 1.2rem;display:flex;flex-direction:column;gap:1.15rem;min-width:0}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.sheet-head h2{font:500 2.5rem/1 var(--display);display:flex;align-items:baseline;gap:.55rem;flex-wrap:wrap}
+.sheet-head h2 span{font:500 1.15rem/1.2 var(--body);color:var(--ink-2)}
+.meta{color:var(--ink-3);font-size:.875rem}
+.now{display:flex;flex-direction:column;gap:.45rem}
+.now-sky{font-size:1.2rem;font-weight:600;line-height:1.25}
+.now-range{color:var(--ink-2)}
+.status{display:inline-flex;align-items:center;gap:.4rem;font-size:.9rem;line-height:1.2;padding:.3rem .7rem .3rem .45rem;border-radius:1.1rem;background:var(--wash);align-self:flex-start;max-width:100%}
+.status svg{flex:none}
+.empty{color:var(--ink-2)}
+
+.obs{display:grid;grid-template-columns:1fr 1fr;gap:1rem 1rem}
+.tile{min-width:0;display:flex;flex-direction:column;gap:.1rem}
+.tile-l{color:var(--ink-2);font-size:.875rem;line-height:1.25}
+.tile-v{font-size:1.75rem;font-weight:600;line-height:1.15}
+.tile-v .unit{font-size:.55em;font-weight:500;color:var(--ink-2);margin-left:.15em}
+.tile-v.is-missing{font-size:1.05rem;font-weight:500;color:var(--ink-2);padding:.4rem 0 .25rem}
+.tile-s{color:var(--ink-3);font-size:.8125rem;line-height:1.3}
+
+.astro{display:grid;grid-template-columns:1fr 1fr;gap:.4rem 1rem;padding-top:.9rem;border-top:1px solid var(--rule)}
+.astro div{display:flex;justify-content:space-between;gap:.5rem;font-size:.9rem}
+.astro dt{color:var(--ink-2)}
+.astro dd{font-weight:600;font-variant-numeric:tabular-nums}
+
+.block{display:flex;flex-direction:column;gap:.55rem;padding-top:1rem;border-top:1px solid var(--rule)}
+.block h3{font:600 1.05rem/1.25 var(--body)}
+.cap{color:var(--ink-3);font-size:.8125rem;line-height:1.35}
+
+.track{position:relative;height:8px}
+.track::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule)}
+.rng{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--temp);min-width:8px}
+
+.fc{list-style:none;padding:0;display:grid;gap:2px;margin:0 -.35rem}
+.fc li{display:grid;grid-template-columns:3.3rem 1.75rem 2.2rem minmax(2.5rem,1fr) 2.2rem;grid-template-areas:"day ico min bar max" "day ico txt txt txt";column-gap:.5rem;row-gap:.1rem;align-items:center;padding:.45rem .5rem;border-radius:8px}
+.fc li.is-today{background:var(--wash)}
+.fc .day{grid-area:day;align-self:start;font-weight:600;line-height:1.25}
+.fc .day small{display:block;font-weight:400;color:var(--ink-3);font-size:.8125rem}
+.fc .ico{grid-area:ico;align-self:start;line-height:0;padding-top:.05rem}
+.fc .min{grid-area:min;text-align:right}
+.fc .max{grid-area:max}
+.fc .min,.fc .max{font-variant-numeric:tabular-nums;font-weight:600}
+.fc .track{grid-area:bar}
+.fc .txt{grid-area:txt;color:var(--ink-2);font-size:.9rem;line-height:1.3}
+.fc .txt .w{display:flex;align-items:center;gap:.3rem;color:var(--ink);margin-top:.15rem}
+.fc-head{display:grid;grid-template-columns:3.3rem 1.75rem 2.2rem minmax(2.5rem,1fr) 2.2rem;column-gap:.5rem;padding:0 .15rem;color:var(--ink-3);font-size:.8125rem}
+.fc-head .min{grid-column:3;text-align:right}
+.fc-head .max{grid-column:5}
+
+.nm{display:grid;gap:1px;font-variant-numeric:tabular-nums;margin:0 -.35rem}
+.nm-row{display:grid;grid-template-columns:2.2rem 2.3rem minmax(2.25rem,1.3fr) 2.3rem minmax(1.75rem,.8fr) 2.9rem;column-gap:.5rem;align-items:center;padding:.2rem .5rem;border-radius:6px;font-size:.9375rem}
+.nm-row.is-head{color:var(--ink-3);font-size:.8125rem;align-items:end;line-height:1.2}
+.nm-row.is-now{background:var(--wash);font-weight:600}
+.nm-row.is-year{font-weight:600;border-top:1px solid var(--rule);border-radius:0;padding-top:.45rem;margin-top:.25rem}
+.nm-row .r{text-align:right}
+.rain{position:relative;height:8px;border-left:1px solid var(--ink-3)}
+.rain i{position:absolute;left:0;top:0;bottom:0;background:var(--rainc);border-radius:0 4px 4px 0}
+
+.facts{display:grid;gap:.6rem}
+.facts div{display:grid;grid-template-columns:7.25rem minmax(0,1fr);gap:.75rem;font-size:.9375rem;line-height:1.35}
+.facts dt{color:var(--ink-2)}
+.src{color:var(--ink-3);font-size:.8125rem;line-height:1.4;padding-top:.9rem;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:.3rem}
+.src.is-stale{color:var(--ink)}
+.src .stale{display:flex;gap:.4rem;align-items:flex-start;font-size:.9rem}
+.src .stale svg{flex:none;margin-top:.1rem}
+
+/* ---------- sources ---------- */
+.sources{display:flex;flex-direction:column;gap:.75rem;max-width:44rem}
+.sources h2{font:500 1.75rem/1 var(--display)}
+.sources p,.sources li{color:var(--ink-2);font-size:.9375rem;line-height:1.5}
+.sources ul{padding-left:1.1rem;display:flex;flex-direction:column;gap:.45rem}
+
+.glyph .g-sun{fill:var(--haldi)}
+.glyph .g-ray{stroke:var(--haldi);stroke-width:1.7;stroke-linecap:round}
+.glyph .g-cloud{fill:var(--sheet);stroke:var(--ink-2);stroke-width:1.5;stroke-linejoin:round}
+.is-today .glyph .g-cloud{fill:var(--wash)}
+.glyph .g-rain{stroke:var(--rainc);stroke-width:1.7;stroke-linecap:round}
+.glyph .g-bolt{fill:var(--bhagwa);stroke:var(--sheet);stroke-width:.8;stroke-linejoin:round}
+.glyph .g-line{stroke:var(--ink-3);stroke-width:1.7;stroke-linecap:round}
+
+@media (min-width:36rem){
+  .astro{grid-template-columns:repeat(4,auto);justify-content:space-between}
+  .astro div{flex-direction:column;gap:0}
+}
+@media (min-width:60rem){
+  .page{padding:1.75rem 2rem 4rem;gap:2.5rem}
+  .name{font-size:2rem}
+  .clocks{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:2.75rem;align-items:end}
+  .satellites{grid-template-columns:1fr;border-top:0;border-left:1px solid var(--rule);padding:0 0 .35rem 2.75rem}
+  .satellites .clock + .clock{margin-top:1.5rem}
+  .satellites .digits{font-size:5.25rem}
+  .sheets{grid-template-columns:1fr 1fr;align-items:start}
+  .sheet{padding:1.4rem 1.4rem 1.5rem}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div class="top-row">
+      <h1 class="name">Samay aur Mausam</h1>
+      <div class="fmt" role="group" aria-label="Clock format">
+        <button type="button" id="fmt-24" aria-pressed="true">24 h</button>
+        <button type="button" id="fmt-12" aria-pressed="false">12 h</button>
+      </div>
+    </div>
+    <div class="band" aria-hidden="true"></div>
+  </header>
+
+  <section class="clocks" aria-label="Time in India, Abu Dhabi and China">
+    <article class="clock" id="clock-in">
+      <h2>India <span lang="hi">भारत</span></h2>
+      <p class="clock-date" id="date-in">&nbsp;</p>
+      <div class="hero-box" id="hero-box"><div class="digits" id="digits-in" aria-hidden="true"></div></div>
+      <p class="clock-note">Indian Standard Time, GMT+5:30</p>
+      <p class="sr-only" id="sr-in"></p>
+    </article>
+    <div class="satellites">
+      <article class="clock" id="clock-ae">
+        <h2>Abu Dhabi <span lang="hi">अबू धाबी</span></h2>
+        <div class="digits" id="digits-ae" aria-hidden="true"></div>
+        <p class="clock-note"><b>1 h 30 min behind India</b></p>
+        <p class="clock-date" id="date-ae">&nbsp;</p>
+        <p class="sr-only" id="sr-ae"></p>
+      </article>
+      <article class="clock" id="clock-cn">
+        <h2>China <span lang="hi">चीन</span></h2>
+        <div class="digits" id="digits-cn" aria-hidden="true"></div>
+        <p class="clock-note"><b>2 h 30 min ahead of India</b></p>
+        <p class="clock-date" id="date-cn">&nbsp;</p>
+        <p class="sr-only" id="sr-cn"></p>
+      </article>
+    </div>
+  </section>
+
+  <section class="weather" aria-label="Weather in Jaipur and Nagaur">
+    <h2>Mausam</h2>
+    <p class="feedline" id="feedline" role="status">Loading the saved IMD figures.</p>
+    <div class="sheets">
+      <article class="sheet" id="wx-jaipur" aria-label="Jaipur weather"></article>
+      <article class="sheet" id="wx-nagaur" aria-label="Nagaur weather"></article>
+    </div>
+  </section>
+
+  <section class="sources" aria-labelledby="src-h">
+    <h2 id="src-h">Where the numbers come from</h2>
+    <p>Every figure here is from an Indian government website, except the China time difference, which is from an Indian site.</p>
+    <ul>
+      <li>Weather and 7-day forecast: India Meteorological Department local weather reports for <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348">Jaipur (station 42348)</a> and <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242">Nagaur (station 42242)</a>. A web page cannot fetch IMD itself, <span id="how-read">so the figures are read from the two IMD pages and saved for it</span>. Each sheet says when its copy was read.</li>
+      <li>Jaipur climate normals: <a href="https://city.imd.gov.in/citywx/extreme/climat.php?id=42348">IMD climatological table, 1991 to 2020</a>.</li>
+      <li>Nagaur climate: <a href="https://cgwb.gov.in/sites/default/files/2022-10/nagaur.pdf">Central Ground Water Board district report (2013)</a> and the <a href="https://nagaur.dcourts.gov.in/?p=5859">Nagaur district profile</a> on the NIC-hosted district court site. IMD publishes no climate normals for the Nagaur station.</li>
+      <li>Indian Standard Time is kept by <a href="https://csirnews.niscpr.res.in/home/article/798">CSIR-National Physical Laboratory</a>, New Delhi.</li>
+      <li>Abu Dhabi: the <a href="https://www.indembassyuae.gov.in/page/contact-us2/">Embassy of India, Abu Dhabi</a> gives UAE time as GMT+4 and IST as UAE time plus 1½ hours.</li>
+      <li>China keeps one time for the whole country, GMT+8, which is 2 h 30 min ahead of IST (<a href="https://clicktime.in/trade-time/india-china/">clicktime.in</a>).</li>
+    </ul>
+    <p>The seconds tick on this device's own clock. NPL sends out Indian Standard Time over NTP servers, which a web page cannot read, so the page takes the time from your phone and applies the three official offsets. None of the three places changes its clocks during the year.</p>
+  </section>
+
+</div>
+<noscript><p style="padding:1rem">This page needs JavaScript to run the clocks and show the weather.</p></noscript>
+
+<script>
+(function(){
+'use strict';
+
+var SVGNS='http://www.w3.org/2000/svg';
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MON3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var DAY3=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var IST=330;                      /* minutes ahead of GMT */
+var staleMs=26*3600*1000;         /* a copy older than this is flagged */
+
+function $(id){return document.getElementById(id);}
+function el(tag,props){
+  var n=document.createElement(tag),k,i,c;
+  if(props){for(k in props){var v=props[k];if(v==null||v===false)continue;
+    if(k==='class')n.className=v;else if(k==='text')n.textContent=v;else n.setAttribute(k,v===true?'':v);}}
+  for(i=2;i<arguments.length;i++){c=arguments[i];if(c==null||c===false)continue;
+    if(Array.isArray(c)){c.forEach(function(x){if(x!=null&&x!==false)n.appendChild(x.nodeType?x:document.createTextNode(String(x)));});}
+    else n.appendChild(c.nodeType?c:document.createTextNode(String(c)));}
+  return n;
+}
+function svg(size,build){
+  var s=document.createElementNS(SVGNS,'svg');
+  s.setAttribute('viewBox','0 0 24 24');s.setAttribute('width',size);s.setAttribute('height',size);s.setAttribute('aria-hidden','true');
+  build(function(tag,attrs){var n=document.createElementNS(SVGNS,tag);for(var k in attrs)n.setAttribute(k,attrs[k]);s.appendChild(n);return n;});
+  return s;
+}
+
+/* ================= time ================= */
+function zparts(off,ms){var d=new Date(ms+off*60000);
+  return {y:d.getUTCFullYear(),mo:d.getUTCMonth(),d:d.getUTCDate(),wd:d.getUTCDay(),h:d.getUTCHours(),mi:d.getUTCMinutes(),s:d.getUTCSeconds()};}
+function dn(p){return Math.round(Date.UTC(p.y,p.mo,p.d)/86400000);}
+function wdOf(p){return new Date(Date.UTC(p.y,p.mo,p.d)).getUTCDay();}
+function todayIST(){return zparts(IST,Date.now());}
+function two(n){return n<10?'0'+n:''+n;}
+
+var fmt24=true;
+try{if(localStorage.getItem('sm.fmt')==='12')fmt24=false;}catch(e){}
+
+var ZONES=[{key:'in',off:330,sec:true},{key:'ae',off:240},{key:'cn',off:480}];
+var clocks={};
+function buildDigits(z){
+  var host=$('digits-'+z.key);host.textContent='';
+  function mk(cls,t){var s=document.createElement('span');s.className=cls;if(t)s.textContent=t;host.appendChild(s);return s;}
+  var o={h1:mk('c'),h2:mk('c'),col:mk('colon',':'),m1:mk('c'),m2:mk('c')};
+  if(z.sec){var sec=mk('sec');o.s1=document.createElement('span');o.s2=document.createElement('span');o.s1.className=o.s2.className='c';sec.appendChild(o.s1);sec.appendChild(o.s2);}
+  o.ap=mk('ampm');o.ap.hidden=true;o.host=host;
+  clocks[z.key]=o;
+}
+function setTxt(n,t){if(n.textContent!==t)n.textContent=t;}
+function clockText(p){
+  if(fmt24)return two(p.h)+':'+two(p.mi);
+  return (p.h%12||12)+':'+two(p.mi)+(p.h<12?' am':' pm');
+}
+function paint(z,p){
+  var c=clocks[z.key],h=p.h,ap='';
+  if(!fmt24){ap=h<12?'am':'pm';h=h%12||12;}
+  var hs=two(h),hide=!fmt24&&h<10;
+  if(c.h1.hidden!==hide){c.h1.hidden=hide;c.dirty=true;}
+  setTxt(c.h1,hs.charAt(0));setTxt(c.h2,hs.charAt(1));
+  var ms=two(p.mi);setTxt(c.m1,ms.charAt(0));setTxt(c.m2,ms.charAt(1));
+  if(c.s1){var ss=two(p.s);setTxt(c.s1,ss.charAt(0));setTxt(c.s2,ss.charAt(1));}
+  if(c.ap.textContent!==ap){c.ap.textContent=ap;c.ap.hidden=!ap;c.dirty=true;}
+}
+function fitHero(){
+  var box=$('hero-box'),line=$('digits-in');if(!box||!line)return;
+  var avail=box.clientWidth;if(!avail)return;
+  line.style.fontSize='100px';
+  var natural=line.getBoundingClientRect().width;if(!natural)return;
+  var size=Math.max(56,Math.min((avail-2)/natural*100,250));
+  line.style.fontSize=size.toFixed(1)+'px';
+  ['ae','cn'].forEach(function(k){   /* the two smaller clocks only ever shrink to fit their column */
+    var l=$('digits-'+k),b=l.parentNode;l.style.fontSize='';
+    var room=b.clientWidth,w=l.getBoundingClientRect().width;
+    if(room&&w>room){var fs=parseFloat(getComputedStyle(l).fontSize);l.style.fontSize=(Math.floor(fs*room/w*10)/10)+'px';}
+  });
+}
+function placeName(z){return z.key==='in'?'India':z.key==='ae'?'Abu Dhabi':'China';}
+function dateLine(z,p,inDay){
+  var line=DAYS[p.wd]+', '+p.d+' '+MONTHS[p.mo]+(z.key==='in'?' '+p.y:'');
+  if(z.key!=='in'){var diff=dn(p)-inDay;if(diff>0)line+=', a day ahead of India';else if(diff<0)line+=', a day behind India';}
+  return line;
+}
+var lastMinute=-1,lastDay=-1;
+function tick(){
+  var now=Date.now(),pin=zparts(IST,now),inDay=dn(pin);
+  ZONES.forEach(function(z){
+    var p=z.key==='in'?pin:zparts(z.off,now);
+    paint(z,p);
+    var line=dateLine(z,p,inDay);
+    setTxt($('date-'+z.key),line);
+    if(pin.mi!==lastMinute)setTxt($('sr-'+z.key),placeName(z)+': '+clockText(p)+', '+line);
+  });
+  if(clocks['in'].dirty||clocks.ae.dirty||clocks.cn.dirty){fitHero();clocks['in'].dirty=clocks.ae.dirty=clocks.cn.dirty=false;}
+  if(pin.mi!==lastMinute){lastMinute=pin.mi;refreshAges();}
+  if(inDay!==lastDay){if(lastDay!==-1)renderWeather();lastDay=inDay;}
+  setTimeout(tick,1000-(Date.now()%1000)+15);
+}
+function setFmt(is24){
+  fmt24=is24;
+  $('fmt-24').setAttribute('aria-pressed',is24?'true':'false');
+  $('fmt-12').setAttribute('aria-pressed',is24?'false':'true');
+  try{localStorage.setItem('sm.fmt',is24?'24':'12');}catch(e){}
+  var now=Date.now(),pin=zparts(IST,now);
+  ZONES.forEach(function(z){var p=zparts(z.off,now);paint(z,p);setTxt($('sr-'+z.key),placeName(z)+': '+clockText(p)+', '+dateLine(z,p,dn(pin)));});
+  fitHero();clocks['in'].dirty=clocks.ae.dirty=clocks.cn.dirty=false;
+}
+
+/* ================= weather data ================= */
+var STATIONS=[
+  {key:'jaipur',name:'Jaipur',hi:'जयपुर',id:'42348',imd:'Jaipur-AMO',
+   url:'https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348',
+   trend:'https://city.imd.gov.in/yogi/chart_min_max_main.php?id=42348'},
+  {key:'nagaur',name:'Nagaur',hi:'नागौर',id:'42242',imd:'',
+   url:'https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242',
+   trend:'https://city.imd.gov.in/yogi/chart_min_max_main.php?id=42242'}
+];
+/* IMD climatological table for Jaipur, 1991 to 2020: month, mean daily min, mean daily max, rain mm, rainy days */
+var JAIPUR_NORMALS=[
+  ['Jan',8.4,22.5,5.9,0.6],['Feb',12.0,26.1,10.2,0.9],['Mar',17.4,32.0,4.4,0.7],['Apr',22.8,37.6,7.1,0.9],
+  ['May',27.1,41.1,12.2,1.3],['Jun',27.9,39.7,61.9,4.2],['Jul',26.2,34.8,190.5,9.4],['Aug',24.9,32.7,203.4,9.8],
+  ['Sep',24.0,34.2,79.6,4.8],['Oct',20.1,34.1,19.4,1.2],['Nov',14.4,29.6,1.9,0.2],['Dec',9.9,25.1,3.8,0.3]];
+var JAIPUR_YEAR={min:19.6,max:32.5,rain:600.3,days:34.3,thunder:18.8,fog:4.9};
+
+var feed={};            /* key -> normalised station */
+var feedState='loading';/* loading | checking | live | empty | offline */
+var ageNodes=[];
+
+function num(v){
+  if(typeof v==='number')return isFinite(v)?v:null;
+  if(typeof v==='string'){var t=v.trim();if(!/\d/.test(t))return null;var n=Number(t.replace(/[^\d.+-]/g,''));return isFinite(n)?n:null;}
+  return null;
+}
+function temp(v){var n=num(v);return n!=null&&n>-30&&n<65?n:null;}
+function pct(v){var n=num(v);return n!=null&&n>=0&&n<=100?n:null;}
+function str(v){return typeof v==='string'?v.trim().slice(0,240):'';}
+function sentence(v){var t=str(v).toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1);}
+function hhmm(v){var s=str(v);return /^\d{1,2}:\d{2}$/.test(s)?s:'';}
+function parseISO(s){
+  if(typeof s!=='string')return null;var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s.trim());if(!m)return null;
+  var p={y:+m[1],mo:+m[2]-1,d:+m[3]};return p.mo>=0&&p.mo<12&&p.d>=1&&p.d<=31?p:null;
+}
+function parseDM(s,ref){
+  if(typeof s!=='string')return null;
+  var m=/^(\d{1,2})[-\s\/]([A-Za-z]{3})/.exec(s.trim());if(!m)return parseISO(s);
+  var d=+m[1],mo=-1,i;for(i=0;i<12;i++)if(MON3[i].toLowerCase()===m[2].toLowerCase())mo=i;
+  if(mo<0||d<1||d>31)return null;
+  var y=ref?ref.y:todayIST().y;
+  if(ref){if(ref.mo===11&&mo===0)y=ref.y+1;else if(ref.mo===0&&mo===11)y=ref.y-1;}
+  return {y:y,mo:mo,d:d};
+}
+function rainOf(v){
+  if(typeof v==='number'&&isFinite(v))return v===0?{kind:'nil'}:{kind:'mm',v:v};
+  if(typeof v==='string'){var t=v.trim().toLowerCase();
+    if(t==='nil')return {kind:'nil'};if(t==='trace'||t==='tr')return {kind:'trace'};
+    var n=num(v);if(n!=null)return n===0?{kind:'nil'}:{kind:'mm',v:n};}
+  return {kind:'none'};
+}
+function normalise(doc){
+  if(!doc||typeof doc!=='object')return null;
+  var imd=doc.imd&&typeof doc.imd==='object'?doc.imd:null;if(!imd)return null;
+  var dated=parseISO(imd.dated),rows=Array.isArray(imd.forecast)?imd.forecast:[];
+  var fc=[];rows.slice(0,10).forEach(function(r){
+    if(!r||typeof r!=='object')return;
+    var d=parseDM(r.date,dated);if(!d)return;
+    var lo=temp(r.min_c),hi=temp(r.max_c);
+    if(lo!=null&&hi!=null&&lo>hi){var x=lo;lo=hi;hi=x;}
+    fc.push({date:d,min:lo,max:hi,text:sentence(r.forecast),warning:sentence(r.warning)});
+  });
+  fc.sort(function(a,b){return dn(a.date)-dn(b.date);});
+  var t=Date.parse(doc.fetchedAt);
+  return {
+    fetchedAt:isFinite(t)?t:null,dated:dated,station:str(imd.station),
+    max:{v:temp(imd.max_c),on:parseISO(imd.max_recorded_on),dep:num(imd.max_departure_c)},
+    min:{v:temp(imd.min_c),on:parseISO(imd.min_recorded_on),dep:num(imd.min_departure_c)},
+    rain:rainOf(imd.rain_24h),rh0830:pct(imd.rh_0830),rh1730:pct(imd.rh_1730),
+    sunset:hhmm(imd.sunset),sunrise:hhmm(imd.sunrise_tomorrow),moonset:hhmm(imd.moonset),moonrise:hhmm(imd.moonrise),
+    forecast:fc
+  };
+}
+
+/* ================= weather drawing ================= */
+function deg(v){if(v==null)return '–';var r=Math.round(v*10)/10;return (r%1===0?String(r):r.toFixed(1))+'°';}
+function one(v){return (Math.round(v*10)/10).toFixed(1);}
+function dm(p){return p.d+' '+MON3[p.mo];}
+function recorded(on,today){
+  if(!on)return null;var diff=dn(today)-dn(on);
+  if(diff===0)return 'Recorded today';if(diff===1)return 'Recorded yesterday';return 'Recorded '+dm(on);
+}
+/* A blank reading on today's report, before IMD's usual posting hour, is simply not due yet. */
+function due(m,today,hour,text){return m.dated&&dn(m.dated)===dn(today)&&today.h<hour?text:null;}
+function departure(dep){
+  if(dep==null)return null;var r=Math.round(dep*10)/10;
+  if(r===0)return 'Same as normal';
+  return Math.abs(r).toFixed(1)+'° '+(r>0?'above':'below')+' normal';
+}
+function ago(ms){
+  var m=Math.max(0,Math.round((Date.now()-ms)/60000));
+  if(m<2)return 'just now';if(m<90)return m+' min ago';
+  var h=Math.round(m/60);if(h<36)return h+' h ago';
+  return Math.round(h/24)+' days ago';
+}
+function stampIST(ms){var p=zparts(IST,ms);return p.d+' '+MON3[p.mo]+', '+two(p.h)+':'+two(p.mi)+' IST';}
+
+function skyKind(text){
+  var t=(text||'').toLowerCase();
+  if(/thunder|lightning|squall|hail/.test(t))return 'thunder';
+  if(/rain|shower|drizzle/.test(t))return 'rain';
+  if(/fog|mist/.test(t))return 'fog';
+  if(/dust|haze|smoke|sand/.test(t))return 'haze';
+  if(/partly cloudy/.test(t))return 'partly';
+  if(/mainly clear/.test(t))return 'mainly';
+  if(/cloudy|overcast/.test(t))return 'cloudy';
+  if(/clear|sunny|fair/.test(t))return 'clear';
+  return 'none';
+}
+var CLOUD='M6.5 18.5h10.2a3.8 3.8 0 0 0 .5-7.57A5.6 5.6 0 0 0 6.6 9.9a4.3 4.3 0 0 0-.1 8.6z';
+function glyph(kind,size){
+  var g=svg(size,function(add){
+    function sun(cx,cy,r,rays){
+      add('circle',{cx:cx,cy:cy,r:r,'class':'g-sun'});
+      for(var i=0;i<8;i++){if(rays&&rays.indexOf(i)<0)continue;var a=i*Math.PI/4,r1=r+1.9,r2=r+3.7;
+        add('line',{x1:(cx+Math.cos(a)*r1).toFixed(2),y1:(cy+Math.sin(a)*r1).toFixed(2),x2:(cx+Math.cos(a)*r2).toFixed(2),y2:(cy+Math.sin(a)*r2).toFixed(2),'class':'g-ray'});}
+    }
+    function cloud(dx,dy,sc){add('path',{d:CLOUD,transform:'translate('+dx+' '+dy+') scale('+sc+')','class':'g-cloud'});}
+    function lines(ys){ys.forEach(function(y,i){add('line',{x1:i%2?6:4,y1:y,x2:i%2?20:18,y2:y,'class':'g-line'});});}
+    if(kind==='clear')sun(12,12,4.6);
+    else if(kind==='mainly'){sun(10.5,10.5,4.3);cloud(10.2,11.4,.56);}
+    else if(kind==='partly'){sun(8.6,8.4,3.5,[2,3,4,5,6,7]);cloud(4.2,3.6,.82);}
+    else if(kind==='cloudy')cloud(0,-.5,1);
+    else if(kind==='rain'){cloud(0,-4.2,1);[[8,17.6],[12,17.6],[16,17.6]].forEach(function(p){add('line',{x1:p[0],y1:p[1],x2:p[0]-1.4,y2:p[1]+3.6,'class':'g-rain'});});}
+    else if(kind==='thunder'){cloud(0,-4.2,1);add('path',{d:'M13.4 12.2l-4.9 6.3h3.2l-1.2 4.7 5.3-6.8h-3.3z','class':'g-bolt'});}
+    else if(kind==='fog'){cloud(0,-5,1);lines([17.5,21]);}
+    else if(kind==='haze'){sun(12,8.6,3.6,[4,5,6,7,0]);lines([15.5,18.7,21.9]);}
+    else add('line',{x1:8,y1:12,x2:16,y2:12,'class':'g-line'});
+  });
+  g.setAttribute('class','glyph');return g;
+}
+function statusIcon(kind,size){
+  return svg(size||18,function(add){
+    if(kind==='good'){add('circle',{cx:12,cy:12,r:10,fill:'var(--good)'});add('path',{d:'M7.2 12.4l3.2 3.2 6.4-6.6',fill:'none',stroke:'#fff','stroke-width':2.2,'stroke-linecap':'round','stroke-linejoin':'round'});}
+    else{add('path',{d:'M12 2.8l10 17.4H2z',fill:'var(--warn)',stroke:'var(--warn-edge)','stroke-width':1.4,'stroke-linejoin':'round'});add('path',{d:'M12 9.2v5.2',stroke:'#0b0b0b','stroke-width':2.2,'stroke-linecap':'round'});add('circle',{cx:12,cy:17.4,r:1.25,fill:'#0b0b0b'});}
+  });
+}
+function noWarning(w){return !w||/^no\s*warning/i.test(w)||/^nil$/i.test(w);}
+
+function fcDomain(){
+  var lo=Infinity,hi=-Infinity,t=dn(todayIST());
+  STATIONS.forEach(function(st){var m=feed[st.key];if(!m)return;
+    m.forecast.forEach(function(r){if(dn(r.date)<t)return;if(r.min!=null)lo=Math.min(lo,r.min);if(r.max!=null)hi=Math.max(hi,r.max);});});
+  if(!isFinite(lo)||!isFinite(hi))return null;
+  lo=Math.floor(lo-1);hi=Math.ceil(hi+1);
+  if(hi-lo<12){var pad=(12-(hi-lo))/2;lo-=pad;hi+=pad;}
+  return [lo,hi];
+}
+function rangeBar(lo,hi,dom){
+  var track=el('div',{'class':'track','aria-hidden':'true'});
+  if(!dom||(lo==null&&hi==null))return track;
+  var a=lo!=null?lo:hi,b=hi!=null?hi:lo,span=dom[1]-dom[0];
+  var bar=el('i',{'class':'rng'});
+  bar.style.left=Math.max(0,Math.min(100,(a-dom[0])/span*100)).toFixed(2)+'%';
+  bar.style.width=Math.max(0,(b-a)/span*100).toFixed(2)+'%';
+  track.appendChild(bar);return track;
+}
+function tile(label,value,unit,subs){
+  var missing=value==null;
+  return el('div',{'class':'tile'},
+    el('p',{'class':'tile-l'},label),
+    el('p',{'class':'tile-v'+(missing?' is-missing':'')},missing?'Not reported':value,(!missing&&unit)?el('span',{'class':'unit'},unit):null),
+    (subs||[]).filter(Boolean).map(function(s){return el('p',{'class':'tile-s'},s);}));
+}
+function head(st,sky){
+  return el('header',{'class':'sheet-head'},
+    el('div',null,
+      el('h2',null,st.name,el('span',{lang:'hi'},st.hi)),
+      el('p',{'class':'meta'},'IMD station '+st.id+(st.imd?', '+st.imd:''))),
+    sky?glyph(sky,56):null);
+}
+function forecastBlock(m,today,dom){
+  var rows=m.forecast.filter(function(r){return dn(r.date)>=dn(today);});
+  if(!rows.length)return el('section',{'class':'block'},el('h3',null,'Forecast'),el('p',{'class':'empty'},'This copy of the forecast has run out. It fills again at the next read from IMD.'));
+  var first=rows[0].date,last=rows[rows.length-1].date;
+  var title=rows.length===1?'Forecast for '+dm(first):rows.length+'-day forecast, '+(first.mo===last.mo?first.d+' to '+dm(last):dm(first)+' to '+dm(last));
+  var list=el('ol',{'class':'fc'});
+  rows.forEach(function(r){
+    var isToday=dn(r.date)===dn(today),wd=wdOf(r.date),warn=!noWarning(r.warning);
+    var label=(isToday?'Today':DAYS[wd])+' '+r.date.d+' '+MONTHS[r.date.mo]+': '+(r.text||'no description')+
+      ', minimum '+(r.min!=null?deg(r.min):'not given')+', maximum '+(r.max!=null?deg(r.max):'not given')+(warn?', warning: '+r.warning:'');
+    list.appendChild(el('li',{'class':isToday?'is-today':null,'aria-label':label},
+      el('span',{'class':'day'},isToday?'Today':DAY3[wd],el('small',null,dm(r.date))),
+      el('span',{'class':'ico'},glyph(skyKind(r.text),26)),
+      el('span',{'class':'min'},deg(r.min)),
+      rangeBar(r.min,r.max,dom),
+      el('span',{'class':'max'},deg(r.max)),
+      el('span',{'class':'txt'},r.text||'No description from IMD',warn?el('span',{'class':'w'},statusIcon('warn',15),r.warning):null)));
+  });
+  return el('section',{'class':'block'},
+    el('h3',null,title),
+    el('div',{'class':'fc-head','aria-hidden':'true'},el('span',{'class':'min'},'Min'),el('span',{'class':'max'},'Max')),
+    list);
+}
+function jaipurClimate(today){
+  var now=JAIPUR_NORMALS[today.mo],maxRain=0;
+  JAIPUR_NORMALS.forEach(function(r){maxRain=Math.max(maxRain,r[3]);});
+  var dom=[5,45];
+  var table=el('div',{'class':'nm',role:'table','aria-label':'Jaipur monthly climate normals, 1991 to 2020'});
+  table.appendChild(el('div',{'class':'nm-row is-head',role:'row'},
+    el('span',{role:'columnheader'},'Month'),el('span',{'class':'r',role:'columnheader'},'Min'),
+    el('span',{role:'presentation'}),el('span',{role:'columnheader'},'Max'),
+    el('span',{role:'presentation'}),el('span',{'class':'r',role:'columnheader'},'Rain')));
+  JAIPUR_NORMALS.forEach(function(r,i){
+    var rain=el('div',{'class':'rain','aria-hidden':'true'}),bar=el('i');
+    bar.style.width=(r[3]/maxRain*100).toFixed(2)+'%';rain.appendChild(bar);
+    table.appendChild(el('div',{'class':'nm-row'+(i===today.mo?' is-now':''),role:'row'},
+      el('span',{role:'rowheader'},r[0]),el('span',{'class':'r',role:'cell'},one(r[1])),
+      rangeBar(r[1],r[2],dom),el('span',{role:'cell'},one(r[2])),
+      rain,el('span',{'class':'r',role:'cell'},one(r[3]))));
+  });
+  table.appendChild(el('div',{'class':'nm-row is-year',role:'row'},
+    el('span',{role:'rowheader'},'Year'),el('span',{'class':'r',role:'cell'},one(JAIPUR_YEAR.min)),
+    el('span',{role:'presentation'}),el('span',{role:'cell'},one(JAIPUR_YEAR.max)),
+    el('span',{role:'presentation'}),el('span',{'class':'r',role:'cell'},one(JAIPUR_YEAR.rain))));
+  return el('section',{'class':'block'},
+    el('h3',null,'Climate: a normal '+MONTHS[today.mo]+' and the year'),
+    el('p',null,'A normal '+MONTHS[today.mo]+' day runs from '+one(now[1])+' °C at night to '+one(now[2])+' °C by day, with '+one(now[3])+' mm of rain in the month.'),
+    table,
+    el('p',{'class':'cap'},'Mean daily minimum and maximum in °C, and total rain in mm, for each month. A normal year has '+one(JAIPUR_YEAR.days)+' rainy days, '+one(JAIPUR_YEAR.thunder)+' days with thunder and '+one(JAIPUR_YEAR.fog)+' with fog. IMD climatological table, 1991 to 2020.'));
+}
+function nagaurClimate(){
+  function row(k,v){return el('div',null,el('dt',null,k),el('dd',null,v));}
+  return el('section',{'class':'block'},
+    el('h3',null,'Climate of Nagaur district'),
+    el('dl',{'class':'facts'},
+      row('Type','Arid to semi-arid. Dry, with hot summers and sandstorms.'),
+      row('Rain in a year','410 mm on average (1971 to 2005). The older normal is 363.1 mm (1901 to 1970).'),
+      row('Rainy season','First week of July to mid-September. About 80% of the year’s rain falls then, on 15 days at most.'),
+      row('Coldest month','January: mean maximum 22.5 °C, mean minimum 6.7 °C. Frost is possible.'),
+      row('Hottest month','May: mean daily maximum 40.4 °C, minimum 25.7 °C.'),
+      row('Humidity','Dry air except in the monsoon. August averages 80%.'),
+      row('Records','Highest 47 °C and lowest 0 °C, as given in the district profile.')),
+    el('p',{'class':'cap'},'Central Ground Water Board district report (2013); records from the Nagaur district profile. IMD publishes no climate normals for the Nagaur station, so there is no month-by-month table and no departure from normal.'));
+}
+function sourceLine(st,m){
+  var stale=m.fetchedAt!=null&&(Date.now()-m.fetchedAt)>staleMs;
+  var box=el('div',{'class':'src'+(stale?' is-stale':'')});
+  if(stale)box.appendChild(el('p',{'class':'stale'},statusIcon('warn',16),'This copy is old. The next read from IMD has not arrived yet.'));
+  var line=el('p',null,'IMD report'+(m.dated?' dated '+dm(m.dated)+' '+m.dated.y:'')+'. ');
+  if(m.fetchedAt!=null){var a=el('span',null,'Read '+ago(m.fetchedAt));ageNodes.push({n:a,t:m.fetchedAt});line.appendChild(a);line.appendChild(document.createTextNode(' ('+stampIST(m.fetchedAt)+').'));}
+  box.appendChild(line);
+  box.appendChild(el('p',null,el('a',{href:st.url},'Open the IMD page for '+st.name),' or see ',el('a',{href:st.trend},'IMD’s chart of recent highs and lows'),'.'));
+  return box;
+}
+function renderSheet(st,dom){
+  var host=$('wx-'+st.key),m=feed[st.key],today=todayIST(),kids=[];
+  if(!m){
+    kids.push(head(st,null));
+    kids.push(el('p',{'class':'empty'},feedState==='loading'||feedState==='checking'?'Loading the saved IMD figures.':'No saved figures to show. ',
+      feedState==='loading'||feedState==='checking'?null:el('a',{href:st.url},'Open the IMD page for '+st.name)));
+    kids.push(st.key==='jaipur'?jaipurClimate(today):nagaurClimate());
+  }else{
+    var row=null;m.forecast.forEach(function(r){if(dn(r.date)===dn(today))row=r;});
+    kids.push(head(st,row?skyKind(row.text):null));
+    var now=el('div',{'class':'now'});
+    if(row){
+      now.appendChild(el('p',{'class':'now-sky'},'Today: '+(row.text||'no description from IMD')));
+      now.appendChild(el('p',{'class':'now-range'},'Forecast '+deg(row.min)+' to '+deg(row.max)));
+      now.appendChild(noWarning(row.warning)
+        ?el('p',{'class':'status'},statusIcon('good',18),'No IMD warning today')
+        :el('p',{'class':'status'},statusIcon('warn',18),'IMD warning: '+row.warning));
+    }else now.appendChild(el('p',{'class':'empty'},'This copy has no forecast for today.'));
+    kids.push(now);
+    var rh=(m.rh0830!=null||m.rh1730!=null)?(m.rh0830!=null?m.rh0830+'%':'–')+' / '+(m.rh1730!=null?m.rh1730+'%':'–'):null;
+    var rain=m.rain.kind==='nil'?'Nil':m.rain.kind==='trace'?'Trace':m.rain.kind==='mm'?one(m.rain.v):null;
+    kids.push(el('div',{'class':'obs'},
+      tile('Maximum',m.max.v!=null?one(m.max.v):null,'°C',[m.max.v!=null?recorded(m.max.on,today):due(m,today,19,'IMD posts the day\u2019s high after 1730 IST'),departure(m.max.dep)]),
+      tile('Minimum',m.min.v!=null?one(m.min.v):null,'°C',[m.min.v!=null?recorded(m.min.on,today):due(m,today,10,'IMD posts the night\u2019s low after 0830 IST'),departure(m.min.dep)]),
+      tile('Humidity',rh,null,['At 0830 and 1730 IST',rh&&(m.rh0830==null||m.rh1730==null)?'A dash is a reading IMD has not reported.':null]),
+      tile('Rain',rain,m.rain.kind==='mm'?'mm':null,['In the 24 h to 0830 IST'])));
+    var astro=[['Sunset',m.sunset],['Sunrise tomorrow',m.sunrise],['Moonrise',m.moonrise],['Moonset',m.moonset]].filter(function(x){return x[1];});
+    if(astro.length)kids.push(el('dl',{'class':'astro'},astro.map(function(x){return el('div',null,el('dt',null,x[0]),el('dd',null,x[1]));})));
+    kids.push(forecastBlock(m,today,dom));
+    kids.push(st.key==='jaipur'?jaipurClimate(today):nagaurClimate());
+    kids.push(sourceLine(st,m));
+  }
+  host.textContent='';kids.forEach(function(k){host.appendChild(k);});
+}
+function feedLine(){
+  var n=$('feedline'),have=STATIONS.some(function(st){return !!feed[st.key];}),newest=0;
+  STATIONS.forEach(function(st){var m=feed[st.key];if(m&&m.fetchedAt)newest=Math.max(newest,m.fetchedAt);});
+  n.textContent='';
+  if(feedState==='live'&&have){n.appendChild(document.createTextNode('Jaipur and Nagaur, from the India Meteorological Department.'));return;}
+  if(feedState==='loading'||feedState==='checking'){n.appendChild(document.createTextNode(have?'Showing the copy saved on this device. Checking for a newer one.':'Loading the saved IMD figures.'));return;}
+  n.appendChild(statusIcon('warn',16));
+  if(feedState==='empty'&&!have)n.appendChild(document.createTextNode('No IMD figures have been saved yet. The IMD pages linked below have today’s report.'));
+  else if(have)n.appendChild(document.createTextNode('The saved IMD figures can’t be reached right now. Showing the copy kept on this device'+(newest?' from '+stampIST(newest):'')+'.'));
+  else n.appendChild(document.createTextNode('The saved IMD figures can’t be reached right now. The IMD pages linked below have today’s report.'));
+}
+function renderWeather(){
+  ageNodes=[];var dom=fcDomain();
+  STATIONS.forEach(function(st){renderSheet(st,dom);});
+  feedLine();
+}
+function refreshAges(){ageNodes.forEach(function(a){setTxt(a.n,'Read '+ago(a.t));});}
+
+function applyDocs(docs,state){
+  var any=false;
+  STATIONS.forEach(function(st){var m=normalise(docs[st.key]);if(m){feed[st.key]=m;any=true;}});
+  feedState=any?state:(state==='live'?'empty':state);
+  if(any&&state==='live'){try{localStorage.setItem('sm.feed',JSON.stringify(docs));}catch(e){}}
+  renderWeather();
+}
+function setState(s){feedState=s;renderWeather();}
+
+function getUse(){
+  return new Promise(function(res){var n=0;(function poll(){
+    if(window.claude&&typeof window.claude.use==='function')return res(function(name){return window.claude.use(name);});
+    if(++n>32)return res(null);setTimeout(poll,250);})();});
+}
+/* Inside Claude the figures sit in the page's saved data. */
+function connectDb(use){
+  var how=$('how-read');if(how)how.textContent='so Claude reads the two IMD pages and saves the figures for it';
+  Promise.resolve().then(function(){return use('db');}).then(function(db){
+    if(!db){setState('offline');return;}
+    var settled=false,timer=setTimeout(function(){if(!settled)setState('offline');},10000);
+    try{
+      db.collection('wx').onSnapshot(function(snap){
+        var docs={};(snap&&snap.docs||[]).forEach(function(d){if(d&&d.exists!==false){var v=d.data();if(v)docs[d.id]=JSON.parse(JSON.stringify(v));}});
+        var cached=!!(snap&&snap.metadata&&snap.metadata.fromCache);
+        if(!cached){settled=true;clearTimeout(timer);}
+        applyDocs(docs,cached?'checking':'live');
+      },function(){settled=true;clearTimeout(timer);setState('offline');});
+    }catch(e){settled=true;clearTimeout(timer);setState('offline');}
+  },function(){setState('offline');});
+}
+/* On its own website the figures sit in data/weather.json, which the app's own job rewrites after each read of IMD. */
+var lastLoad=0,fileMode=false;
+function loadFile(){
+  return fetch('data/weather.json?t='+Math.floor(Date.now()/60000),{cache:'no-store'}).then(function(r){
+    if(!r.ok)throw new Error('http '+r.status);return r.json();
+  }).then(function(j){
+    if(!j||typeof j!=='object'||!j.stations||typeof j.stations!=='object')throw new Error('shape');
+    var docs={};STATIONS.forEach(function(st){var x=j.stations[st.key];if(x&&x.imd)docs[st.key]={fetchedAt:x.fetchedAt,imd:x.imd};});
+    lastLoad=Date.now();applyDocs(docs,'live');
+  });
+}
+function startFileMode(){
+  if(fileMode)return;fileMode=true;staleMs=6*3600*1000;
+  var how=$('how-read');if(how)how.textContent='so a small job in this app’s own GitHub repo reads the two IMD pages twice an hour, by itself, and saves the figures for it';
+  function again(){loadFile().catch(function(){if(feedState==='loading'||feedState==='checking')setState('offline');});}
+  setInterval(function(){if(document.hidden)return;if(feedState!=='live'||Date.now()-lastLoad>=10*60*1000)again();},60*1000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-lastLoad>120000)again();});
+  window.addEventListener('online',again);
+  renderWeather();
+}
+function connect(){
+  if(window.claude&&typeof window.claude.use==='function'){connectDb(function(name){return window.claude.use(name);});return;}
+  loadFile().then(startFileMode,function(){
+    getUse().then(function(use){if(use)connectDb(use);else{setState('offline');startFileMode();}});
+  });
+}
+
+/* ================= start ================= */
+ZONES.forEach(buildDigits);
+$('fmt-24').addEventListener('click',function(){setFmt(true);});
+$('fmt-12').addEventListener('click',function(){setFmt(false);});
+if(!fmt24){$('fmt-24').setAttribute('aria-pressed','false');$('fmt-12').setAttribute('aria-pressed','true');}
+try{var saved=JSON.parse(localStorage.getItem('sm.feed')||'null');if(saved&&typeof saved==='object'){STATIONS.forEach(function(st){var m=normalise(saved[st.key]);if(m)feed[st.key]=m;});}}catch(e){}
+renderWeather();
+tick();
+fitHero();
+if(window.ResizeObserver){var raf=0;new ResizeObserver(function(){cancelAnimationFrame(raf);raf=requestAnimationFrame(fitHero);}).observe(document.querySelector('.clocks'));}
+else window.addEventListener('resize',fitHero);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitHero);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){lastMinute=-1;}});
+connect();
+})();
+</script>
+</body>
+</html>

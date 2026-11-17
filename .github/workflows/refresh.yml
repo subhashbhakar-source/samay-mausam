@@ -1,0 +1,37 @@
+name: Refresh IMD weather
+
+# Reads IMD's Jaipur and Nagaur pages twice an hour and saves any change to data/weather.json.
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-imd
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Get the app
+        run: git clone --depth 1 "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" app
+      - name: Read IMD
+        working-directory: app
+        run: node scripts/fetch-imd.mjs
+      - name: Save the figures if they changed
+        working-directory: app
+        run: |
+          if [ -n "$(git status --porcelain data)" ]; then
+            git config user.name "samay-mausam"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data
+            git commit -m "IMD figures $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          else
+            echo "Nothing to save."
+          fi

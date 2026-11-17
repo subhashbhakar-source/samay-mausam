@@ -1,0 +1,182 @@
+{
+ "schema": 1,
+ "checkedAt": "2026-11-17T09:20:00Z",
+ "stations": {
+  "jaipur": {
+   "stationId": "42348",
+   "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348",
+   "fetchedAt": "2026-11-17T09:20:00Z",
+   "imd": {
+    "station": "Jaipur-AMO Jaipur",
+    "dated": "2026-11-17",
+    "max_c": null,
+    "max_recorded_on": "2026-11-17",
+    "max_departure_c": null,
+    "min_c": 15.2,
+    "min_recorded_on": "2026-11-17",
+    "min_departure_c": 1.5,
+    "rain_24h": "NIL",
+    "rh_0830": 57,
+    "rh_1730": null,
+    "rh_1730_recorded_on": "2026-11-17",
+    "sunset": "17:36",
+    "sunrise_tomorrow": "06:48",
+    "moonset": null,
+    "moonrise": "12:52",
+    "forecast": [
+     {
+      "date": "17-Nov",
+      "min_c": 15,
+      "max_c": 30,
+      "forecast": "Partly cloudy sky",
+      "warning": "No warning",
+      "rh_0830": 60,
+      "rh_1730": 40
+     },
+     {
+      "date": "18-Nov",
+      "min_c": 14,
+      "max_c": 29,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 60,
+      "rh_1730": 40
+     },
+     {
+      "date": "19-Nov",
+      "min_c": 14,
+      "max_c": 28,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 60,
+      "rh_1730": 40
+     },
+     {
+      "date": "20-Nov",
+      "min_c": 15,
+      "max_c": 29,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 55,
+      "rh_1730": 32
+     },
+     {
+      "date": "21-Nov",
+      "min_c": 15,
+      "max_c": 29,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 55,
+      "rh_1730": 30
+     },
+     {
+      "date": "22-Nov",
+      "min_c": 14,
+      "max_c": 25,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 55,
+      "rh_1730": 32
+     },
+     {
+      "date": "23-Nov",
+      "min_c": 15,
+      "max_c": 27,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 55,
+      "rh_1730": 35
+     }
+    ]
+   }
+  },
+  "nagaur": {
+   "stationId": "42242",
+   "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242",
+   "fetchedAt": "2026-11-17T09:20:00Z",
+   "imd": {
+    "station": "Nagaur",
+    "dated": "2026-11-17",
+    "max_c": null,
+    "max_recorded_on": "2026-11-17",
+    "max_departure_c": null,
+    "min_c": 10.7,
+    "min_recorded_on": "2026-11-17",
+    "min_departure_c": null,
+    "rain_24h": "NIL",
+    "rh_0830": 88,
+    "rh_1730": null,
+    "rh_1730_recorded_on": "2026-11-17",
+    "sunset": "17:44",
+    "sunrise_tomorrow": "06:57",
+    "moonset": null,
+    "moonrise": "13:01",
+    "forecast": [
+     {
+      "date": "17-Nov",
+      "min_c": 15,
+      "max_c": 30,
+      "forecast": "Partly cloudy sky",
+      "warning": "No warning",
+      "rh_0830": 60,
+      "rh_1730": 40
+     },
+     {
+      "date": "18-Nov",
+      "min_c": 14,
+      "max_c": 29,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 60,
+      "rh_1730": 40
+     },
+     {
+      "date": "19-Nov",
+      "min_c": 16,
+      "max_c": 28,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 60,
+      "rh_1730": 40
+     },
+     {
+      "date": "20-Nov",
+      "min_c": 13,
+      "max_c": 29,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 56,
+      "rh_1730": 35
+     },
+     {
+      "date": "21-Nov",
+      "min_c": 15,
+      "max_c": 28,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 55,
+      "rh_1730": 32
+     },
+     {
+      "date": "22-Nov",
+      "min_c": 16,
+      "max_c": 27,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 55,
+      "rh_1730": 32
+     },
+     {
+      "date": "23-Nov",
+      "min_c": 12,
+      "max_c": 27,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 55,
+      "rh_1730": 32
+     }
+    ]
+   }
+  }
+ }
+}
