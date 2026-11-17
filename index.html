@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Samay aur Mausam</title>
-<meta name="description" content="Clocks for India, Abu Dhabi and China, with India Meteorological Department weather for Jaipur and Nagaur.">
+<meta name="description" content="Clocks for India, Abu Dhabi and China, a Hindu panchang for Jaipur with tithi, vrat and festival days, and India Meteorological Department weather for Jaipur and Nagaur.">
 <meta name="theme-color" content="#fff3dd" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1c0907" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
@@ -15,6 +15,10 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script defer src="js/astronomy.browser.min.js"></script>
+<script defer src="js/panchang.js"></script>
+<script defer src="js/panchang-hi.js"></script>
+<script defer src="js/panchang-ui.js"></script>
 <link id="webfonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700&family=Teko:wght@400;500;600&display=swap">
 <style>
 :root{
@@ -39,6 +43,12 @@
   --warn:#fab219;       /* status: warning */
   --warn-edge:#c27a00;
   --genda-1:#f57c00; --genda-1c:#d84315; --genda-2:#ffca28; --genda-2c:#f59f00; --dhaga:#b98a52;
+  --gulabi:#c2185b;     /* rani pink: Teej */
+  --tulsi:#2e7d32;      /* leaf green */
+  --mor-deep:#1a3f8f; --mor-teal:#00838f;   /* peacock feather: Ekadashi */
+  --mor-ink:#0c5f73;    /* peacock text on light */
+  --mitti:#a8581f;      /* clay and wood */
+  --ek-wash:#e4f2ef; --teej-wash:#fde6ee;
   --display:"Teko","Arial Narrow","Roboto Condensed",sans-serif;
   --body:"Mukta","Noto Sans Devanagari",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:light;
@@ -48,6 +58,7 @@
     --page:#1c0907; --sheet:#2a100c; --ink:#fff1da; --ink-2:#e6c9a6; --ink-3:#bd9a7a;
     --bhagwa:#ff8a2b; --kumkum:#ff6b57; --haldi:#ffc53d; --mor:#5bb6e6; --temp:#e0651a; --rainc:#3d8fd1;
     --rule:#4a2218; --wash:#3a1710; --good:#0ca30c; --warn:#fab219; --warn-edge:#fab219; --dhaga:#8a5a3a;
+    --gulabi:#ff86b3; --tulsi:#7cc47f; --mor-deep:#9bbcff; --mor-teal:#4dd0e1; --mor-ink:#7fd6e6; --mitti:#d08a4e; --ek-wash:#11302f; --teej-wash:#3b1626;
     color-scheme:dark;
   }
 }
@@ -55,6 +66,7 @@
   --page:#1c0907; --sheet:#2a100c; --ink:#fff1da; --ink-2:#e6c9a6; --ink-3:#bd9a7a;
   --bhagwa:#ff8a2b; --kumkum:#ff6b57; --haldi:#ffc53d; --mor:#5bb6e6; --temp:#e0651a; --rainc:#3d8fd1;
   --rule:#4a2218; --wash:#3a1710; --good:#0ca30c; --warn:#fab219; --warn-edge:#fab219; --dhaga:#8a5a3a;
+    --gulabi:#ff86b3; --tulsi:#7cc47f; --mor-deep:#9bbcff; --mor-teal:#4dd0e1; --mor-ink:#7fd6e6; --mitti:#d08a4e; --ek-wash:#11302f; --teej-wash:#3b1626;
   color-scheme:dark;
 }
 
@@ -183,6 +195,113 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .sources p,.sources li{color:var(--ink-2);font-size:.9375rem;line-height:1.5}
 .sources ul{padding-left:1.1rem;display:flex;flex-direction:column;gap:.45rem}
 
+/* ---------- panchang ---------- */
+.panchang{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:1rem 1rem 1.15rem;display:flex;flex-direction:column;gap:.9rem;min-width:0}
+.pan-head{display:flex;align-items:baseline;justify-content:space-between;gap:.25rem 1rem;flex-wrap:wrap}
+.pan-head h2{font:500 2.1rem/1.2 var(--display)}
+.pan-place{color:var(--ink-3);font-size:.875rem}
+#pan-body{display:flex;flex-direction:column;gap:1.15rem;min-width:0}
+.pan-wait{color:var(--ink-2)}
+.pan-today{display:flex;flex-direction:column;gap:.65rem;min-width:0}
+.pan-tithi{display:flex;align-items:center;gap:.85rem}
+.pan-medal{flex:none;width:4.6rem;height:4.6rem;border-radius:50%;background:var(--wash);display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--rule)}
+.pan-names{min-width:0}
+.pan-rj{font:600 2.3rem/1.16 var(--display);text-wrap:balance}
+.pan-hi{color:var(--ink-2);line-height:1.35}
+.pan-line{line-height:1.5}
+.pan-soft{color:var(--ink-2);font-size:.9375rem}
+.pan-chips{list-style:none;padding:0;margin:.1rem 0 0;display:flex;flex-wrap:wrap;gap:.4rem}
+.pan-chips li{background:var(--wash);border-radius:999px;padding:.22rem .75rem;font-size:.875rem;line-height:1.4;color:var(--ink-2)}
+.pan-kal{background:var(--wash);border-radius:8px;padding:.55rem .8rem;line-height:1.45;border-left:4px solid var(--bhagwa)}
+.pan-kal.is-ek{background:var(--ek-wash);border-left-color:var(--mor-teal)}
+.pan-kal.is-teej{background:var(--teej-wash);border-left-color:var(--gulabi)}
+.pan-about{display:flex;flex-direction:column;gap:.45rem;color:var(--ink-2);font-size:.9688rem;line-height:1.6;max-width:40rem}
+
+.pi{display:block;flex:none}
+.pi .sa{fill:var(--bhagwa)}.pi .ku{fill:var(--kumkum)}.pi .ha{fill:var(--haldi)}.pi .tu{fill:var(--tulsi)}.pi .gu{fill:var(--gulabi)}
+.pi .mt{fill:var(--mor-teal)}.pi .md{fill:var(--mor-deep)}.pi .in{fill:var(--ink)}.pi .i2{fill:var(--ink-2)}.pi .sh{fill:var(--sheet)}.pi .wa{fill:var(--wash)}.pi .mi{fill:var(--mitti)}
+.pi .g1{fill:var(--genda-1)}.pi .g2{fill:var(--genda-2)}
+.pi .l{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pi .l-sa{stroke:var(--bhagwa)}.pi .l-ku{stroke:var(--kumkum)}.pi .l-ha{stroke:var(--haldi)}.pi .l-tu{stroke:var(--tulsi)}.pi .l-in{stroke:var(--ink)}.pi .l-i2{stroke:var(--ink-2)}.pi .l-sh{stroke:var(--sheet)}.pi .l-mi{stroke:var(--mitti)}
+
+/* an observance: a strip that says what kind of day it is, then its name, its deity and why it is kept */
+.occ{border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--page);min-width:0}
+.occ-strip{height:20px}
+.occ-strip.utsav{background:
+  radial-gradient(circle at 8px 10px,var(--genda-1c) 0 1.8px,transparent 2.3px) 0 0/32px 20px space no-repeat,
+  radial-gradient(circle at 8px 10px,var(--genda-1) 0 6px,transparent 6.5px) 0 0/32px 20px space no-repeat,
+  radial-gradient(circle at 24px 10px,var(--genda-2c) 0 1.8px,transparent 2.3px) 0 0/32px 20px space no-repeat,
+  radial-gradient(circle at 24px 10px,var(--genda-2) 0 6px,transparent 6.5px) 0 0/32px 20px space no-repeat,
+  linear-gradient(var(--dhaga),var(--dhaga)) 0 50%/100% 1.5px no-repeat}
+/* a row of lit diyas, and the colours of Holi */
+.occ-strip.utsav.diwali{background:
+  radial-gradient(ellipse 2.4px 4.2px at 11px 7.5px,#ffd54f 0 90%,transparent 100%) 0 0/22px 20px space no-repeat,
+  radial-gradient(ellipse 4px 6.2px at 11px 7.5px,#ff8f00 0 60%,transparent 100%) 0 0/22px 20px space no-repeat,
+  radial-gradient(ellipse 6.5px 3.4px at 11px 15.5px,#e0792c 0 92%,transparent 100%) 0 0/22px 20px space no-repeat,
+  #3b0d0c}
+.occ-strip.utsav.holi{background:
+  radial-gradient(circle at 7px 10px,#e91e63 0 5px,transparent 5.6px) 0 0/70px 20px repeat-x,
+  radial-gradient(circle at 21px 9px,#ffb300 0 6px,transparent 6.6px) 0 0/70px 20px repeat-x,
+  radial-gradient(circle at 35px 11px,#43a047 0 5px,transparent 5.6px) 0 0/70px 20px repeat-x,
+  radial-gradient(circle at 49px 9px,#1e88e5 0 6px,transparent 6.6px) 0 0/70px 20px repeat-x,
+  radial-gradient(circle at 63px 11px,#8e24aa 0 5px,transparent 5.6px) 0 0/70px 20px repeat-x,
+  var(--wash)}
+/* a row of peacock-feather eyes */
+.occ-strip.ekadashi{background:
+  radial-gradient(ellipse 2.6px 3.4px at 13px 11.6px,#1b2d8c 0 94%,transparent 100%) 0 0/26px 20px space no-repeat,
+  radial-gradient(ellipse 4.7px 5.7px at 13px 10.9px,#19b5c7 0 94%,transparent 100%) 0 0/26px 20px space no-repeat,
+  radial-gradient(ellipse 6.5px 7.5px at 13px 10.3px,#f2b01e 0 94%,transparent 100%) 0 0/26px 20px space no-repeat,
+  radial-gradient(ellipse 8.7px 9.4px at 13px 10px,#2e9d5b 0 94%,transparent 100%) 0 0/26px 20px space no-repeat,
+  #0b4a57}
+/* lehariya: the wave-dyed cloth worn on Teej */
+.occ-strip.teej{background:#ffca28 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='20'%3E%3Cg fill='none' stroke-width='3.4'%3E%3Cpath d='M-6 6.500l6-5 6 5 6-5 6 5 6-5 6 5' stroke='%23d81b60'/%3E%3Cpath d='M-6 13.500l6-5 6 5 6-5 6 5 6-5 6 5' stroke='%232e7d32'/%3E%3Cpath d='M-6 20.500l6-5 6 5 6-5 6 5 6-5 6 5' stroke='%23c62828'/%3E%3C/g%3E%3C/svg%3E") 0 0/24px 20px repeat-x}
+.occ-body{padding:.85rem .95rem 1rem;display:flex;flex-direction:column;gap:.65rem}
+.occ-head{display:flex;justify-content:space-between;gap:.75rem;align-items:flex-start}
+.occ-titles{min-width:0}
+.occ h3{font:600 1.85rem/1.18 var(--display);text-wrap:balance}
+.occ.big h3{font-size:2.1rem}
+.occ-kicker{font:600 2.35rem/1.14 var(--display);text-wrap:balance}
+.occ.ekadashi h3,.occ.teej h3{font:500 1.5rem/1.22 var(--display)}
+.occ-deity{color:var(--ink-2);font-size:.9375rem;line-height:1.4;margin-top:.15rem}
+.occ-icon{flex:none}
+.occ-text{line-height:1.62;max-width:40rem}
+.occ-note{font-weight:600;line-height:1.45}
+.occ-lines{list-style:none;margin:0;padding:.6rem 0 0;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:.35rem;font-size:.9375rem;line-height:1.5;color:var(--ink-2)}
+.occ.ekadashi{background:var(--ek-wash)}
+.occ.ekadashi .occ-kicker{color:var(--mor-ink)}
+.occ.teej{background:var(--teej-wash)}
+.occ.teej .occ-kicker{color:var(--gulabi)}
+.occ.vrat{background:transparent}
+.occ-art{display:flex;justify-content:center;padding:.1rem 0 .2rem}
+.jhula{width:min(62%,13.5rem);height:auto}
+
+.pan-ahead{display:flex;flex-direction:column;gap:.7rem;border-top:1px solid var(--rule);padding-top:1rem;min-width:0}
+.pan-h3{font:500 1.6rem/1.2 var(--display)}
+.pan-next{display:grid;gap:.5rem}
+.next{display:flex;gap:.7rem;align-items:center;border-radius:8px;padding:.55rem .75rem;font-size:.9688rem;line-height:1.45}
+.next.is-ek{background:var(--ek-wash)}
+.next.is-teej{background:var(--teej-wash)}
+.next-icon{flex:none;display:grid}
+.up-list{display:flex;flex-direction:column}
+.up-row{border-top:1px solid var(--rule)}
+.up-row > summary{display:grid;grid-template-columns:4.4rem minmax(0,1fr) auto;gap:.65rem;align-items:center;min-height:3.1rem;padding:.4rem 0 .4rem .6rem;cursor:pointer;list-style:none;border-left:3px solid transparent}
+.up-row > summary::-webkit-details-marker{display:none}
+.up-row.is-ek > summary{border-left-color:var(--mor-teal)}
+.up-row.is-teej > summary{border-left-color:var(--gulabi)}
+.up-date{display:flex;flex-direction:column;line-height:1.2}
+.up-date b{font-weight:600;font-size:.9688rem}
+.up-date span{color:var(--ink-3);font-size:.8125rem}
+.up-name{line-height:1.32;font-weight:500}
+.up-name small{display:block;font-size:.8125rem;font-weight:400;color:var(--ink-2);margin-top:.1rem}
+.up-row.is-big .up-name,.up-row.is-ek .up-name,.up-row.is-teej .up-name{font-weight:700}
+.up-away{color:var(--ink-3);font-size:.8125rem;white-space:nowrap}
+.up-more{padding:.1rem 0 .9rem .75rem;display:flex;flex-direction:column;gap:.55rem}
+.up-who{display:flex;align-items:center;gap:.7rem}
+.up-tithi{font-weight:600;line-height:1.35}
+.up-month{font:600 .9375rem/1.3 var(--body);color:var(--ink-2);padding:1rem 0 .4rem}
+.up-year > summary{cursor:pointer;min-height:2.75rem;display:flex;align-items:center;color:var(--kumkum);font-weight:600;border-top:1px solid var(--rule)}
+.pan-tap,.pan-foot{color:var(--ink-3);font-size:.875rem;line-height:1.55;max-width:44rem}
+
 .glyph .g-sun{fill:var(--haldi)}
 .glyph .g-ray{stroke:var(--haldi);stroke-width:1.7;stroke-linecap:round}
 .glyph .g-cloud{fill:var(--sheet);stroke:var(--ink-2);stroke-width:1.5;stroke-linejoin:round}
@@ -202,6 +321,13 @@ a{color:var(--kumkum);text-underline-offset:.15em}
   .satellites{grid-template-columns:1fr;border-top:0;border-left:1px solid var(--rule);padding:0 0 .35rem 2.75rem}
   .satellites .clock + .clock{margin-top:1.5rem}
   .satellites .digits{font-size:5.25rem}
+  .clocks{grid-template-areas:"india sat" "pan pan"}
+  #clock-in{grid-area:india}
+  .satellites{grid-area:sat}
+  .panchang{grid-area:pan;align-self:start;padding:1.4rem 1.5rem 1.5rem}
+  #pan-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1.25rem 2.25rem;align-items:start}
+  .pan-ahead{border-top:0;padding-top:0;border-left:1px solid var(--rule);padding-left:2.25rem}
+  .pan-foot{grid-column:1/-1}
   .sheets{grid-template-columns:1fr 1fr;align-items:start}
   .sheet{padding:1.4rem 1.4rem 1.5rem}
 }
@@ -230,6 +356,13 @@ a{color:var(--kumkum);text-underline-offset:.15em}
       <p class="clock-src" id="clock-src" role="status">Checking the time against the network.</p>
       <p class="sr-only" id="sr-in"></p>
     </article>
+    <section class="panchang" id="panchang" lang="hi" aria-labelledby="pan-h">
+      <div class="pan-head">
+        <h2 id="pan-h">पंचांग</h2>
+        <p class="pan-place">जयपुर के सूर्योदय से</p>
+      </div>
+      <div id="pan-body"><p class="pan-wait">पंचांग गिना जा रहा है।</p></div>
+    </section>
     <div class="satellites">
       <article class="clock" id="clock-ae">
         <h2>Abu Dhabi <span lang="hi">अबू धाबी</span></h2>
@@ -268,11 +401,12 @@ a{color:var(--kumkum);text-underline-offset:.15em}
       <li>Abu Dhabi: the <a href="https://www.indembassyuae.gov.in/page/contact-us2/">Embassy of India, Abu Dhabi</a> gives UAE time as GMT+4 and IST as UAE time plus 1½ hours.</li>
       <li>China keeps one time for the whole country, GMT+8, which is 2 h 30 min ahead of IST (<a href="https://clicktime.in/trade-time/india-china/">clicktime.in</a>).</li>
     </ul>
+    <p>The panchang is worked out inside this page, not read from any website. Neither Drik Panchang nor Kalnirnay offers a feed an app may read, so the page uses the same method they do (drik ganit): the tithi is the angle between the Moon and the Sun, the month comes from the Sun's sidereal sign at the new moons with the Lahiri ayanamsa, the Government of India's standard, and the day's tithi is the one running at sunrise in Jaipur. Months are named the North Indian (purnimanta) way. Vrat and festival days follow the householder (smarta) rules of the dharma texts; where Vaishnava temples keep a different day, both are shown. The Sun and Moon positions come from <a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a>, an open-source library. Before release the dates were checked against Drik Panchang's published lists; tithi times can differ from it by a minute or two.</p>
     <p>The clocks take the time from the network, not from this device. The page asks the web server that hosts it what time it is, so a phone set to ship’s time or to another zone still shows true Indian time, to within a second or so. NPL sends out Indian Standard Time over NTP servers, which a web page cannot read, but you can compare this clock with <a href="https://www.nplindia.org/clockcode/html/">NPL’s own web clock</a>. None of the three places changes its clocks during the year.</p>
   </section>
 
 </div>
-<noscript><p style="padding:1rem">This page needs JavaScript to run the clocks and show the weather.</p></noscript>
+<noscript><p style="padding:1rem">This page needs JavaScript to run the clocks, work out the panchang and show the weather.</p></noscript>
 
 <script>
 (function(){
@@ -312,6 +446,7 @@ function wdOf(p){return new Date(Date.UTC(p.y,p.mo,p.d)).getUTCDay();}
    for the time and keeps the difference. Every clock and date below uses trueNow(). */
 var skew=0,clockState='checking',syncing=false;
 function trueNow(){return Date.now()+skew;}
+window.SamayApp={now:trueNow,is24:function(){return fmt24;}};   /* the panchang panel reads the true time and the 12/24 h choice from here */
 function todayIST(){return zparts(IST,trueNow());}
 function two(n){return n<10?'0'+n:''+n;}
 
@@ -410,7 +545,7 @@ function tick(){
     if(pin.mi!==lastMinute)setTxt($('sr-'+z.key),placeName(z)+': '+clockText(p)+', '+line);
   });
   if(clocks['in'].dirty||clocks.ae.dirty||clocks.cn.dirty){fitHero();clocks['in'].dirty=clocks.ae.dirty=clocks.cn.dirty=false;}
-  if(pin.mi!==lastMinute){lastMinute=pin.mi;refreshAges();}
+  if(pin.mi!==lastMinute){lastMinute=pin.mi;refreshAges();if(window.PanchangUI)window.PanchangUI.tick();}
   if(inDay!==lastDay){if(lastDay!==-1)renderWeather();lastDay=inDay;}
   setTimeout(tick,1000-(trueNow()%1000)+15);
 }
@@ -422,6 +557,7 @@ function setFmt(is24){
   var now=trueNow(),pin=zparts(IST,now);
   ZONES.forEach(function(z){var p=zparts(z.off,now);paint(z,p);setTxt($('sr-'+z.key),placeName(z)+': '+clockText(p)+', '+dateLine(z,p,dn(pin)));});
   fitHero();clocks['in'].dirty=clocks.ae.dirty=clocks.cn.dirty=false;
+  if(window.PanchangUI)window.PanchangUI.refresh();
 }
 
 /* ================= weather data ================= */
@@ -795,6 +931,12 @@ setInterval(function(){if(!document.hidden)syncClock();},10*60*1000);
 clockNote();
 syncClock();
 connect();
+/* the panchang arrives in its own script files; if they never load, say so instead of waiting for ever */
+window.addEventListener('load',function(){
+  if(window.PanchangUI)return;
+  var b=$('pan-body');if(!b)return;
+  b.textContent='';b.appendChild(el('p',{class:'pan-wait',text:'पंचांग की फाइलें नहीं खुल सकीं। नेटवर्क आने पर पेज दोबारा खोलें।'}));
+});
 })();
 </script>
 </body>
