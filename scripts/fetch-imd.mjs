@@ -190,7 +190,7 @@ async function main() {
   if (!ok) { console.log('Nothing read this time. The saved figures stay as they are.'); return; }
   out.checkedAt = nowIso;
   const age = old && old.checkedAt ? now - Date.parse(old.checkedAt) : Infinity;
-  if (changed || !(age < REWRITE_AFTER_MS)) {
+  if (changed || process.env.FORCE_SAVE === 'true' || !(age < REWRITE_AFTER_MS)) {
     await mkdir(path.dirname(OUT), { recursive: true });
     await writeFile(OUT, JSON.stringify(out, null, 1) + '\n');
     console.log(changed ? 'IMD figures changed: saved.' : 'No change at IMD: refreshed the last-checked time.');

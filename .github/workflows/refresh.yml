@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: '7,37 * * * *'
   workflow_dispatch:
+    inputs:
+      force:
+        description: Save even if IMD shows no change
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -22,6 +27,8 @@ jobs:
         run: git clone --depth 1 "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" app
       - name: Read IMD
         working-directory: app
+        env:
+          FORCE_SAVE: ${{ inputs.force }}
         run: node scripts/fetch-imd.mjs
       - name: Save the figures if they changed
         working-directory: app
