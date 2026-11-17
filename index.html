@@ -91,6 +91,8 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .clock-date{color:var(--ink-2);font-size:.95rem}
 .clock-note{color:var(--ink-2);font-size:.95rem}
 .clock-note b{font-weight:600;color:var(--ink)}
+.clock-src{color:var(--ink-3);font-size:.875rem;line-height:1.35;margin-top:.2rem;display:flex;gap:.4rem;align-items:flex-start;max-width:34rem}
+.clock-src svg{flex:none;margin-top:.1rem}
 .hero-box{width:100%;margin:.35rem 0 .1rem}
 .digits{display:inline-flex;align-items:baseline;font-family:var(--display);font-weight:600;line-height:.86;white-space:nowrap;color:var(--ink)}
 .digits .c{display:inline-block;width:1ch;text-align:center}
@@ -225,6 +227,7 @@ a{color:var(--kumkum);text-underline-offset:.15em}
       <p class="clock-date" id="date-in">&nbsp;</p>
       <div class="hero-box" id="hero-box"><div class="digits" id="digits-in" aria-hidden="true"></div></div>
       <p class="clock-note">Indian Standard Time, GMT+5:30</p>
+      <p class="clock-src" id="clock-src" role="status">Checking the time against the network.</p>
       <p class="sr-only" id="sr-in"></p>
     </article>
     <div class="satellites">
@@ -256,7 +259,7 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 
   <section class="sources" aria-labelledby="src-h">
     <h2 id="src-h">Where the numbers come from</h2>
-    <p>Every figure here is from an Indian government website, except the China time difference, which is from an Indian site.</p>
+    <p>The weather, climate and time-zone figures are from Indian government websites, except the China time difference, which is from an Indian site. The running time comes from the web server that hosts this page.</p>
     <ul>
       <li>Weather and 7-day forecast: India Meteorological Department local weather reports for <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348">Jaipur (station 42348)</a> and <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242">Nagaur (station 42242)</a>. A web page cannot fetch IMD itself, <span id="how-read">so the figures are read from the two IMD pages and saved for it</span>. Each sheet says when its copy was read.</li>
       <li>Jaipur climate normals: <a href="https://city.imd.gov.in/citywx/extreme/climat.php?id=42348">IMD climatological table, 1991 to 2020</a>.</li>
@@ -265,7 +268,7 @@ a{color:var(--kumkum);text-underline-offset:.15em}
       <li>Abu Dhabi: the <a href="https://www.indembassyuae.gov.in/page/contact-us2/">Embassy of India, Abu Dhabi</a> gives UAE time as GMT+4 and IST as UAE time plus 1½ hours.</li>
       <li>China keeps one time for the whole country, GMT+8, which is 2 h 30 min ahead of IST (<a href="https://clicktime.in/trade-time/india-china/">clicktime.in</a>).</li>
     </ul>
-    <p>The seconds tick on this device's own clock. NPL sends out Indian Standard Time over NTP servers, which a web page cannot read, so the page takes the time from your phone and applies the three official offsets. None of the three places changes its clocks during the year.</p>
+    <p>The clocks take the time from the network, not from this device. The page asks the web server that hosts it what time it is, so a phone set to ship’s time or to another zone still shows true Indian time, to within a second or so. NPL sends out Indian Standard Time over NTP servers, which a web page cannot read, but you can compare this clock with <a href="https://www.nplindia.org/clockcode/html/">NPL’s own web clock</a>. None of the three places changes its clocks during the year.</p>
   </section>
 
 </div>
@@ -305,7 +308,11 @@ function zparts(off,ms){var d=new Date(ms+off*60000);
   return {y:d.getUTCFullYear(),mo:d.getUTCMonth(),d:d.getUTCDate(),wd:d.getUTCDay(),h:d.getUTCHours(),mi:d.getUTCMinutes(),s:d.getUTCSeconds()};}
 function dn(p){return Math.round(Date.UTC(p.y,p.mo,p.d)/86400000);}
 function wdOf(p){return new Date(Date.UTC(p.y,p.mo,p.d)).getUTCDay();}
-function todayIST(){return zparts(IST,Date.now());}
+/* The phone's clock may be set to ship's time or another zone, so the page asks its own web server
+   for the time and keeps the difference. Every clock and date below uses trueNow(). */
+var skew=0,clockState='checking',syncing=false;
+function trueNow(){return Date.now()+skew;}
+function todayIST(){return zparts(IST,trueNow());}
 function two(n){return n<10?'0'+n:''+n;}
 
 var fmt24=true;
@@ -355,9 +362,46 @@ function dateLine(z,p,inDay){
   if(z.key!=='in'){var diff=dn(p)-inDay;if(diff>0)line+=', a day ahead of India';else if(diff<0)line+=', a day behind India';}
   return line;
 }
-var lastMinute=-1,lastDay=-1;
+function gap(sec){
+  var h=Math.floor(sec/3600),m=Math.round((sec%3600)/60);if(m===60){h+=1;m=0;}
+  return ((h?h+' h ':'')+(m||!h?m+' min':'')).trim();
+}
+function clockNote(){
+  var n=$('clock-src');if(!n)return;n.textContent='';
+  if(clockState==='net'){
+    var off=Math.round(skew/1000),a=Math.abs(off);
+    n.appendChild(document.createTextNode(a<45?'Set from the network, not from this phone\u2019s clock.'
+      :'Set from the network. This phone\u2019s own clock is '+gap(a)+(off>0?' behind':' ahead of')+' true time, so the app does not use it.'));
+  }else if(clockState==='device'){
+    n.appendChild(statusIcon('warn',15));
+    n.appendChild(document.createTextNode('Network time can\u2019t be reached, so this is the phone\u2019s own clock. It will be wrong if the phone is set to another time.'));
+  }else n.appendChild(document.createTextNode('Checking the time against the network.'));
+}
+function syncClock(){
+  if(syncing)return;syncing=true;
+  var best=null,n=0;
+  function done(){
+    syncing=false;
+    if(best){if(clockState!=='net'||Math.abs(best.skew-skew)>1500)skew=best.skew;clockState='net';}
+    else if(clockState!=='net'){clockState='device';skew=0;}
+    clockNote();lastMinute=-1;renderWeather();
+  }
+  (function one(){
+    var t0=Date.now(),p0=performance.now();
+    fetch('manifest.webmanifest?clock='+t0+'.'+n,{method:'HEAD',cache:'no-store'}).then(function(r){
+      var p1=performance.now(),d=r.headers.get('date'),server=d?Date.parse(d):NaN;
+      if(!isFinite(server))throw new Error('no date');
+      var rtt=p1-p0,x={rtt:rtt,skew:server+500-t0-rtt/2};   /* the header is cut to whole seconds, hence the half second */
+      if(!best||x.rtt<best.rtt)best=x;
+    }).catch(function(){}).then(function(){n+=1;if(n<3&&(!best||best.rtt>200))setTimeout(one,150);else done();});
+  })();
+}
+var lastMinute=-1,lastDay=-1,lastDev=0,lastPerf=0;
 function tick(){
-  var now=Date.now(),pin=zparts(IST,now),inDay=dn(pin);
+  var dev=Date.now(),perf=performance.now();
+  if(lastDev&&Math.abs((dev-lastDev)-(perf-lastPerf))>2000)syncClock();   /* the phone's clock was changed, or the phone slept */
+  lastDev=dev;lastPerf=perf;
+  var now=trueNow(),pin=zparts(IST,now),inDay=dn(pin);
   ZONES.forEach(function(z){
     var p=z.key==='in'?pin:zparts(z.off,now);
     paint(z,p);
@@ -368,14 +412,14 @@ function tick(){
   if(clocks['in'].dirty||clocks.ae.dirty||clocks.cn.dirty){fitHero();clocks['in'].dirty=clocks.ae.dirty=clocks.cn.dirty=false;}
   if(pin.mi!==lastMinute){lastMinute=pin.mi;refreshAges();}
   if(inDay!==lastDay){if(lastDay!==-1)renderWeather();lastDay=inDay;}
-  setTimeout(tick,1000-(Date.now()%1000)+15);
+  setTimeout(tick,1000-(trueNow()%1000)+15);
 }
 function setFmt(is24){
   fmt24=is24;
   $('fmt-24').setAttribute('aria-pressed',is24?'true':'false');
   $('fmt-12').setAttribute('aria-pressed',is24?'false':'true');
   try{localStorage.setItem('sm.fmt',is24?'24':'12');}catch(e){}
-  var now=Date.now(),pin=zparts(IST,now);
+  var now=trueNow(),pin=zparts(IST,now);
   ZONES.forEach(function(z){var p=zparts(z.off,now);paint(z,p);setTxt($('sr-'+z.key),placeName(z)+': '+clockText(p)+', '+dateLine(z,p,dn(pin)));});
   fitHero();clocks['in'].dirty=clocks.ae.dirty=clocks.cn.dirty=false;
 }
@@ -469,7 +513,7 @@ function departure(dep){
   return Math.abs(r).toFixed(1)+'° '+(r>0?'above':'below')+' normal';
 }
 function ago(ms){
-  var m=Math.max(0,Math.round((Date.now()-ms)/60000));
+  var m=Math.max(0,Math.round((trueNow()-ms)/60000));
   if(m<2)return 'just now';if(m<90)return m+' min ago';
   var h=Math.round(m/60);if(h<36)return h+' h ago';
   return Math.round(h/24)+' days ago';
@@ -615,7 +659,7 @@ function nagaurClimate(){
     el('p',{'class':'cap'},'Central Ground Water Board district report (2013); records from the Nagaur district profile. IMD publishes no climate normals for the Nagaur station, so there is no month-by-month table and no departure from normal.'));
 }
 function sourceLine(st,m){
-  var stale=m.fetchedAt!=null&&(Date.now()-m.fetchedAt)>staleMs;
+  var stale=m.fetchedAt!=null&&(trueNow()-m.fetchedAt)>staleMs;
   var box=el('div',{'class':'src'+(stale?' is-stale':'')});
   if(stale)box.appendChild(el('p',{'class':'stale'},statusIcon('warn',16),'This copy is old. The next read from IMD has not arrived yet.'));
   var line=el('p',null,'IMD report'+(m.dated?' dated '+dm(m.dated)+' '+m.dated.y:'')+'. ');
@@ -745,7 +789,11 @@ fitHero();
 if(window.ResizeObserver){var raf=0;new ResizeObserver(function(){cancelAnimationFrame(raf);raf=requestAnimationFrame(fitHero);}).observe(document.querySelector('.clocks'));}
 else window.addEventListener('resize',fitHero);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitHero);
-document.addEventListener('visibilitychange',function(){if(!document.hidden){lastMinute=-1;}});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){lastMinute=-1;syncClock();}});
+window.addEventListener('online',syncClock);
+setInterval(function(){if(!document.hidden)syncClock();},10*60*1000);
+clockNote();
+syncClock();
 connect();
 })();
 </script>
