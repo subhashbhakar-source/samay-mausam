@@ -363,7 +363,25 @@ function nowOf(v){
   var t=tempOf(v.temp_c),read=Date.parse(v.readAt),same=Date.parse(v.sameSince),at=Date.parse(v.at),n=trueNow();
   if(t==null||!isFinite(read)||n-read>3*3600000||n-read<-600000)return null;
   if(v.kind!=='estimate'&&isFinite(same)&&n-same>6*3600000)return null;
-  return {t:t,est:v.kind==='estimate',at:isFinite(at)?at:read};
+  return {t:t,est:v.kind==='estimate',at:isFinite(at)?at:read,read:read};
+}
+/* Nagaur's estimate straight from Open-Meteo, for when the weather job could not get a recent one.
+   Asked at most every 30 minutes while the page is open. */
+var estLive=null,estAsked=0;
+try{estLive=JSON.parse(localStorage.getItem('sm.est')||'null');}catch(e){}
+function askEstimate(){
+  var d=wxDoc&&wxDoc.stations&&wxDoc.stations.nagaur&&wxDoc.stations.nagaur.now,t=trueNow(),jr=d?Date.parse(d.readAt):NaN;
+  if(document.hidden||t-estAsked<30*60000)return;
+  if(isFinite(jr)&&t-jr<70*60000)return;
+  if(estLive&&t-estLive.read<30*60000)return;
+  estAsked=t;
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=27.202&longitude=73.734&current=temperature_2m&timezone=Asia%2FKolkata',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    var c=j&&j.current,at=c&&typeof c.time==='string'?Date.parse(c.time+':00+05:30'):NaN;
+    if(!c||typeof c.temperature_2m!=='number'||!(c.temperature_2m>-10&&c.temperature_2m<55)||!isFinite(at))return;
+    estLive={t:c.temperature_2m,read:trueNow(),at:at};
+    try{localStorage.setItem('sm.est',JSON.stringify(estLive));}catch(e){}
+    renderWx();
+  }).catch(function(){});
 }
 function dayLine(r){
   if(!r)return 'इस दिन का अनुमान अभी नहीं मिला।';
@@ -383,11 +401,13 @@ function rainLine(s,today){
 }
 function pair(dl,k,v){dl.appendChild(el('dt',null,k));dl.appendChild(el('dd',null,v));}
 function renderWx(){
+  setTimeout(askEstimate,0);
   var host=$('mau-body'),src=$('mau-src');if(!host)return;
   var now=trueNow(),today=parts(now,IST).dn,newest=0,any=false,est=false;
   wxDay=today;host.textContent='';
   if(wxDoc&&wxDoc.stations&&typeof wxDoc.stations==='object')STN.forEach(function(st){
     var s=station(wxDoc.stations[st.key],today);if(!s)return;
+    if(st.key==='nagaur'&&estLive&&(!s.now||estLive.read>s.now.read)&&trueNow()-estLive.read<3*3600000)s.now={t:estLive.t,est:true,at:estLive.at,read:estLive.read};
     any=true;if(s.at)newest=Math.max(newest,s.at);
     var card=el('article','mau'),dl=el('dl'),sky=el('dl'),w=[];
     var hd=el('div','mau-head');

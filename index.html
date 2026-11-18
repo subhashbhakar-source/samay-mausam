@@ -583,6 +583,29 @@ function nowOf(v){
   if(t==null||!isFinite(read))return null;
   return {t:t,est:v.kind==='estimate',read:read,same:isFinite(same)?same:null,at:isFinite(at)?at:read};
 }
+/* Nagaur's estimate straight from Open-Meteo, for when the weather job could not get a recent one
+   (Open-Meteo does not always answer GitHub's machines). Asked at most every 30 minutes while the page is open. */
+var estLive=null,estAsked=0;
+try{estLive=JSON.parse(localStorage.getItem('sm.est')||'null');}catch(e){}
+function askEstimate(){
+  var job=feed.nagaur&&feed.nagaur.now,t=trueNow();
+  if(document.hidden||t-estAsked<30*60000)return;
+  if(job&&t-job.read<70*60000)return;                  /* the job's copy is recent enough */
+  if(estLive&&t-estLive.read<30*60000)return;
+  estAsked=t;
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=27.202&longitude=73.734&current=temperature_2m&timezone=Asia%2FKolkata',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    var c=j&&j.current,at=c&&typeof c.time==='string'?Date.parse(c.time+':00+05:30'):NaN;
+    if(!c||typeof c.temperature_2m!=='number'||!(c.temperature_2m>-10&&c.temperature_2m<55)||!isFinite(at))return;
+    estLive={t:c.temperature_2m,est:true,read:trueNow(),at:at,same:null};
+    try{localStorage.setItem('sm.est',JSON.stringify(estLive));}catch(e){}
+    renderWeather();
+  }).catch(function(){});
+}
+function bestNow(key,m){
+  var n=m&&m.now;
+  if(key==='nagaur'&&estLive&&isFinite(estLive.read)&&(!n||estLive.read>n.read))n={t:estLive.t,est:true,read:estLive.read,at:estLive.at,same:null};
+  return n;
+}
 function nowFresh(n){
   var t=trueNow();
   return !!n&&t-n.read<3*3600000&&t-n.read>-600000&&!(!n.est&&n.same&&t-n.same>6*3600000);
@@ -679,7 +702,7 @@ function tile(label,value,unit,subs){
     (subs||[]).filter(Boolean).map(function(s){return el('p',{'class':'tile-s'},s);}));
 }
 function head(st,sky,m){
-  var n=m&&nowFresh(m.now)?m.now:null;
+  var b=bestNow(st.key,m),n=nowFresh(b)?b:null;
   return el('header',{'class':'sheet-head'},
     el('div',null,
       el('h2',null,st.name,el('span',{lang:'hi'},st.hi)),
@@ -810,6 +833,7 @@ function feedLine(){
   else n.appendChild(document.createTextNode('The saved IMD figures can’t be reached right now. The IMD pages linked below have today’s report.'));
 }
 function renderWeather(){
+  setTimeout(askEstimate,0);
   ageNodes=[];var dom=fcDomain();
   STATIONS.forEach(function(st){renderSheet(st,dom);});
   feedLine();
