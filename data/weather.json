@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "checkedAt": "2026-11-18T07:16:38Z",
+ "checkedAt": "2026-11-18T10:02:08Z",
  "stations": {
   "jaipur": {
    "stationId": "42348",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348",
-   "fetchedAt": "2026-11-18T07:16:38Z",
+   "fetchedAt": "2026-11-18T10:02:08Z",
    "imd": {
     "station": "Jaipur-AMO Jaipur",
     "dated": "2026-11-18",
@@ -93,7 +93,7 @@
   "nagaur": {
    "stationId": "42242",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242",
-   "fetchedAt": "2026-11-18T07:16:38Z",
+   "fetchedAt": "2026-11-18T10:02:08Z",
    "imd": {
     "station": "Nagaur",
     "dated": "2026-11-18",
