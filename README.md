@@ -32,6 +32,8 @@ It compares 462 dates and times: Ekadashi tithi times and fast days for 2026 and
 
 ## US dollar in rupees (main page only)
 
+First, what SBI pays for a dollar: the TT buying rate on SBI's forex card rates sheet (`https://sbi.bank.in/documents/16012/1400784/FOREX_CARD_RATES.pdf`), issued each working morning and again when the market moves. The job reads the PDF with `pdftotext` (installed by the workflow if missing) and saves it as `fx.sbi` with the sheet's date and time. Under it, the RBI reference rate described next. A sheet more than five days old is not shown.
+
 Opposite "India" on the main page: the day's USD/INR reference rate set by Financial Benchmarks India (FBIL), as the Reserve Bank of India's home page shows it ("INR / 1 USD : 93.3558 ... (As at 1.00pm of November 18, 2026)"). The weather job reads it on each run and saves it as `fx` in `data/weather.json` when it changes, which is once a working day at about 1 pm. The page keeps the last copy on the phone and marks it "(old)" after five days.
 
 ## Temperature right now

@@ -6,6 +6,8 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import dns from 'node:dns';
+import { execFileSync } from 'node:child_process';
+import os from 'node:os';
 
 // GitHub's machines often have no IPv6 route; ask for IPv4 addresses first so a site that also has IPv6 is still reached.
 dns.setDefaultResultOrder('ipv4first');
@@ -23,6 +25,8 @@ export const NOW_IMD_PAGES = ['https://mausam.imd.gov.in/jaipur/', 'https://maus
 export const NOW_ESTIMATE = { nagaur: { lat: 27.202, lon: 73.734 } };
 // The rupee: the RBI's home page shows the day's reference rate set by FBIL, e.g. "INR / 1 USD : 93.3558 ... (As at 1.00pm of November 18, 2026)".
 export const RBI_HOME = 'https://www.rbi.org.in/';
+// What SBI pays for a dollar: its forex card rates sheet (a PDF), issued each working morning and again when the market moves.
+export const SBI_PDFS = ['https://sbi.bank.in/documents/16012/1400784/FOREX_CARD_RATES.pdf', 'https://www.sbi.co.in/documents/16012/1400784/FOREX_CARD_RATES.pdf'];
 export const estimateUrl = (p) => `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m&timezone=Asia%2FKolkata`;
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const REWRITE_AFTER_MS = 110 * 60 * 1000; // with no change at IMD, still refresh the "last checked" time about every 2 hours
@@ -167,6 +171,46 @@ export function parseRbiUsd(html) {
   return { usd_inr: rate, asOf };
 }
 
+// The sheet as text (pdftotext -layout): "Date 18-11-2026", "Time 10:01 AM", and
+// "UNITED STATES DOLLAR USD/INR 92.95 93.8 92.88 ..." with TT BUY first and TT SELL second.
+export function parseSbiText(text) {
+  const t = String(text).replace(/\s+/g, ' ');
+  const row = /UNITED\s+STATES\s+DOLLAR\s*(?:\(?\s*USD\s*\/\s*INR\s*\)?)?\s+(\d{2,3}(?:\.\d{1,4})?)\s+(\d{2,3}(?:\.\d{1,4})?)/i.exec(t);
+  if (!row) return null;
+  const buy = Number(row[1]), sell = Number(row[2]);
+  if (!(buy > 40 && buy < 250 && sell >= buy && sell - buy < 10)) return null;
+  const d = /Date\s*:?\s*(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/i.exec(t);
+  const tm = /Time\s*:?\s*(\d{1,2})[:.](\d{2})\s*([AP])\.?\s*M/i.exec(t);
+  let at = null;
+  if (d) {
+    let h = tm ? +tm[1] % 12 + (tm[3].toUpperCase() === 'P' ? 12 : 0) : 9, mi = tm ? +tm[2] : 30;
+    const ms = Date.UTC(+d[3], +d[2] - 1, +d[1], h, mi) - 330 * 60000;
+    if (Number.isFinite(ms)) at = new Date(ms).toISOString().replace(/\.\d+Z$/, 'Z');
+  }
+  return { tt_buy: buy, tt_sell: sell, at };
+}
+
+async function getBytes(u) {
+  let last;
+  for (const wait of [0, 4000, 10000]) {
+    if (wait) await new Promise((r) => setTimeout(r, wait));
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 30000);
+    try {
+      const res = await fetch(u, { headers: { 'User-Agent': UA, Accept: 'application/pdf,*/*' }, signal: ctl.signal, redirect: 'follow' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buf = Buffer.from(await res.arrayBuffer());
+      if (buf.length < 1000 || buf.subarray(0, 5).toString() !== '%PDF-') throw new Error(`not a PDF (${buf.length} bytes)`);
+      return buf;
+    } catch (e) { last = e; } finally { clearTimeout(timer); }
+  }
+  throw new Error(`could not read SBI (${last && last.message})`);
+}
+
+export function pdfText(buf) {
+  const f = path.join(os.tmpdir(), `sbi-${process.pid}.pdf`);
+  return writeFile(f, buf).then(() => execFileSync('pdftotext', ['-layout', f, '-'], { encoding: 'utf8', timeout: 30000 }));
+}
+
 // Open-Meteo's reply: { current: { time: "2026-11-18T15:30", temperature_2m: 27.4 } }, time in IST as asked
 export function parseEstimate(body) {
   const c = body && body.current;
@@ -270,11 +314,23 @@ async function main() {
     else {
       const prevFx = old && old.fx;
       if (!prevFx || prevFx.usd_inr !== fx.usd_inr || prevFx.asOf !== fx.asOf) nowChanged = true;
-      out.fx = { ...fx, source: 'FBIL reference rate, from the RBI home page', url: RBI_HOME, readAt: nowIso };
+      out.fx = { ...(out.fx || {}), ...fx, source: 'FBIL reference rate, from the RBI home page', url: RBI_HOME, readAt: nowIso };
       console.log(`fx: 1 USD = ${fx.usd_inr} INR (as at ${fx.asOf})`);
     }
   } catch (e) { console.log(`::warning::fx: ${e.message}`); }
   if (!out.fx && old && old.fx) out.fx = old.fx;
+  // SBI's buying rate for a dollar
+  for (const u of SBI_PDFS) {
+    try {
+      const sbi = parseSbiText(await pdfText(await getBytes(u)));
+      if (!sbi) { console.log(`::warning::sbi: USD row not found in ${u}`); continue; }
+      const prevSbi = old && old.fx && old.fx.sbi;
+      if (!prevSbi || prevSbi.tt_buy !== sbi.tt_buy || prevSbi.tt_sell !== sbi.tt_sell || prevSbi.at !== sbi.at) nowChanged = true;
+      out.fx = { ...(out.fx || {}), sbi: { ...sbi, url: u, readAt: nowIso } };
+      console.log(`sbi: 1 USD buys ${sbi.tt_buy} INR, sells ${sbi.tt_sell} INR (sheet of ${sbi.at})`);
+      break;
+    } catch (e) { console.log(`::warning::sbi: ${e.message}`); }
+  }
 
   if (!ok && !nowChanged) { console.log('Nothing new read this time. The saved figures stay as they are.'); return; }
   if (ok) out.checkedAt = nowIso;
@@ -282,7 +338,7 @@ async function main() {
   if (changed || nowChanged || process.env.FORCE_SAVE === 'true' || !(age < REWRITE_AFTER_MS)) {
     await mkdir(path.dirname(OUT), { recursive: true });
     await writeFile(OUT, JSON.stringify(out, null, 1) + '\n');
-    console.log(changed ? 'IMD figures changed: saved.' : nowChanged ? 'Temperature now or the dollar rate changed: saved.' : 'No change at IMD: refreshed the last-checked time.');
+    console.log(changed ? 'IMD figures changed: saved.' : nowChanged ? 'Temperature now or a dollar rate changed: saved.' : 'No change at IMD: refreshed the last-checked time.');
   } else console.log('No change at IMD since the last save.');
 }
 

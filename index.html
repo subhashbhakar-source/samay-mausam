@@ -266,7 +266,7 @@ a{color:var(--kumkum);text-underline-offset:.15em}
     <article class="clock" id="clock-in">
       <div class="in-top">
         <h2 lang="hi">भारत 🇮🇳 <span lang="en">India</span></h2>
-        <p class="fx" id="fx" hidden><span class="fx-v" id="fx-v"></span><span class="fx-cap" id="fx-cap"></span></p>
+        <p class="fx" id="fx" hidden><span class="fx-v" id="fx-v"></span><span class="fx-cap" id="fx-cap"></span><span class="fx-cap" id="fx-cap2"></span></p>
       </div>
       <p class="clock-date" id="date-in">&nbsp;</p>
       <div class="hero-box" id="hero-box"><div class="digits" id="digits-in" aria-hidden="true"></div></div>
@@ -321,7 +321,7 @@ a{color:var(--kumkum);text-underline-offset:.15em}
     <p>The weather, climate and time-zone figures are from Indian government websites, except the China time difference, which is from an Indian site, and Nagaur's temperature right now, which IMD does not publish and is an estimate from Open-Meteo. The running time comes from the web server that hosts this page.</p>
     <ul>
       <li>Weather and 7-day forecast: India Meteorological Department local weather reports for <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348">Jaipur (station 42348)</a> and <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242">Nagaur (station 42242)</a>. A web page cannot fetch IMD itself, <span id="how-read">so the figures are read from the two IMD pages and saved for it</span>. Each sheet says when its copy was read.</li>
-      <li>US dollar in rupees: the day's reference rate set by <a href="https://www.fbil.org.in/">Financial Benchmarks India (FBIL)</a>, as the <a href="https://www.rbi.org.in/">Reserve Bank of India's home page</a> shows it. It is set once a working day, at about 1 pm.</li>
+      <li>US dollar in rupees: first, what SBI pays for a dollar (its TT buying rate for transactions between ₹10 and ₹20 lakh), from <a href="https://sbi.bank.in/documents/16012/1400784/FOREX_CARD_RATES.pdf">SBI's forex card rates sheet</a>, issued each working morning and again when the market moves. Under it, the day's reference rate set by <a href="https://www.fbil.org.in/">Financial Benchmarks India (FBIL)</a>, as the <a href="https://www.rbi.org.in/">Reserve Bank of India's home page</a> shows it. It is set once a working day, at about 1 pm.</li>
       <li>Temperature right now: Jaipur's from the current weather on the <a href="https://mausam.imd.gov.in/jaipur/">IMD Meteorological Centre Jaipur</a> home page, which gives no time, so the time shown is when the app read it. Nagaur's is an estimate from <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0), because IMD publishes none for Nagaur.</li>
       <li>Jaipur climate normals: <a href="https://city.imd.gov.in/citywx/extreme/climat.php?id=42348">IMD climatological table, 1991 to 2020</a>.</li>
       <li>Nagaur climate: <a href="https://cgwb.gov.in/sites/default/files/2022-10/nagaur.pdf">Central Ground Water Board district report (2013)</a> and the <a href="https://nagaur.dcourts.gov.in/?p=5859">Nagaur district profile</a> on the NIC-hosted district court site. IMD publishes no climate normals for the Nagaur station.</li>
@@ -875,17 +875,28 @@ function connect(){
 }
 
 /* ================= the dollar in rupees =================
-   The day's reference rate set by FBIL, as the RBI's home page shows it. The weather job reads it with the weather;
-   it changes once a working day, at about 1 pm. The last copy is kept on the phone for use without internet. */
+   First, what SBI pays for a dollar (its TT buying rate), from SBI's forex card rates sheet: issued each working morning
+   and again when the market moves. Under it, the day's RBI reference rate set by FBIL (about 1 pm each working day).
+   The weather job reads both; the last copy is kept on the phone for use without internet. */
 var fxDoc=null;
 try{fxDoc=JSON.parse(localStorage.getItem('sm.fx')||'null');}catch(e){}
+function fxWhen(at){var p=zparts(IST,at),t=todayIST();return (dn(p)===dn(t)?'':dm(p)+' ')+clockText(p);}
 function paintFx(){
-  var box=$('fx'),f=fxDoc;if(!box)return;
-  var r=f&&typeof f.usd_inr==='number'?f.usd_inr:NaN;
-  if(!(r>40&&r<250)){box.hidden=true;return;}
-  var at=Date.parse(f.asOf),old=isFinite(at)&&trueNow()-at>5*86400000;
-  setTxt($('fx-v'),'$1 = \u20b9'+r.toFixed(2));
-  setTxt($('fx-cap'),'RBI reference rate'+(isFinite(at)?', '+dm(zparts(IST,at)):'')+(old?' (old)':''));
+  var box=$('fx'),f=fxDoc,now=trueNow();if(!box)return;
+  var r=f&&typeof f.usd_inr==='number'&&f.usd_inr>40&&f.usd_inr<250?f.usd_inr:null,rat=f?Date.parse(f.asOf):NaN;
+  var b=f&&f.sbi&&typeof f.sbi.tt_buy==='number'&&f.sbi.tt_buy>40&&f.sbi.tt_buy<250?f.sbi:null,bat=b?Date.parse(b.at):NaN;
+  if(b&&!(isFinite(bat)&&now-bat<5*86400000))b=null;   /* an SBI sheet more than five days old is not shown */
+  if(!b&&!r){box.hidden=true;return;}
+  if(b){
+    setTxt($('fx-v'),'$1 = \u20b9'+b.tt_buy.toFixed(2));
+    setTxt($('fx-cap'),'SBI buying rate, '+fxWhen(bat));
+    setTxt($('fx-cap2'),r?'RBI reference \u20b9'+r.toFixed(2):'');
+  }else{
+    setTxt($('fx-v'),'$1 = \u20b9'+r.toFixed(2));
+    setTxt($('fx-cap'),'RBI reference rate'+(isFinite(rat)?', '+dm(zparts(IST,rat)):'')+(isFinite(rat)&&now-rat>5*86400000?' (old)':''));
+    setTxt($('fx-cap2'),'');
+  }
+  $('fx-cap2').hidden=!$('fx-cap2').textContent;
   box.hidden=false;
 }
 
