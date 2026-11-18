@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "checkedAt": "2026-11-18T05:38:38Z",
+ "checkedAt": "2026-11-18T07:16:38Z",
  "stations": {
   "jaipur": {
    "stationId": "42348",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348",
-   "fetchedAt": "2026-11-18T05:38:38Z",
+   "fetchedAt": "2026-11-18T07:16:38Z",
    "imd": {
     "station": "Jaipur-AMO Jaipur",
     "dated": "2026-11-18",
@@ -77,6 +77,15 @@
       "warning": "No warning",
       "rh_0830": 55,
       "rh_1730": 35
+     },
+     {
+      "date": "24-Nov",
+      "min_c": 13,
+      "max_c": 25,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 50,
+      "rh_1730": 30
      }
     ]
    }
@@ -84,18 +93,18 @@
   "nagaur": {
    "stationId": "42242",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242",
-   "fetchedAt": "2026-11-18T05:38:38Z",
+   "fetchedAt": "2026-11-18T07:16:38Z",
    "imd": {
     "station": "Nagaur",
     "dated": "2026-11-18",
     "max_c": null,
     "max_recorded_on": "2026-11-18",
     "max_departure_c": null,
-    "min_c": null,
+    "min_c": 11,
     "min_recorded_on": "2026-11-18",
     "min_departure_c": null,
-    "rain_24h": null,
-    "rh_0830": null,
+    "rain_24h": "NIL",
+    "rh_0830": 46,
     "rh_1730": null,
     "rh_1730_recorded_on": "2026-11-18",
     "sunset": "17:43",
@@ -156,6 +165,15 @@
       "warning": "No warning",
       "rh_0830": 55,
       "rh_1730": 32
+     },
+     {
+      "date": "24-Nov",
+      "min_c": 12,
+      "max_c": 29,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 55,
+      "rh_1730": 30
      }
     ]
    }
