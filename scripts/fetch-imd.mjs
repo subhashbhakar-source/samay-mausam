@@ -5,6 +5,10 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import dns from 'node:dns';
+
+// GitHub's machines often have no IPv6 route; ask for IPv4 addresses first so a site that also has IPv6 is still reached.
+dns.setDefaultResultOrder('ipv4first');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'data', 'weather.json');
