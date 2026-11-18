@@ -123,6 +123,18 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 @media (max-width:21rem){.mau dl{grid-template-columns:1fr;gap:.1rem}.mau dd{margin-bottom:.45rem}.mau dd:last-child{margin-bottom:0}}   /* the narrowest phones: each label above its line */
 
 .foot{color:var(--ink-2);font-size:.9rem;line-height:1.55;max-width:44rem}
+
+/* Clear edges, so each clock and each part of the page is easy to see and tell apart:
+   a firm coloured frame with a thick top edge, in that part's own colour, and darker lines inside. */
+.page{--rule:#d8b98c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .page{--rule:#6e3d2a}}
+:root[data-theme="dark"] .page{--rule:#6e3d2a}
+.gh,.panchang,.mau{border:2px solid var(--edge-c);border-top-width:7px}
+#gh-in{--edge-c:var(--bhagwa)}        /* India's time: saffron */
+#gh-ship{--edge-c:var(--mor-teal)}    /* the ship's time: sea green */
+.panchang{--edge-c:var(--kumkum)}     /* the panchang: kumkum red */
+.mau{--edge-c:var(--rainc)}           /* the weather: sky blue */
+.occ{border-width:2px}
 </style>
 </head>
 <body>
