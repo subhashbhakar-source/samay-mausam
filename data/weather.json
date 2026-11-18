@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "checkedAt": "2026-11-18T13:11:50Z",
+ "checkedAt": "2026-11-18T13:39:16Z",
  "stations": {
   "jaipur": {
    "stationId": "42348",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348",
-   "fetchedAt": "2026-11-18T13:11:50Z",
+   "fetchedAt": "2026-11-18T13:39:16Z",
    "imd": {
     "station": "Jaipur-AMO Jaipur",
     "dated": "2026-11-18",
@@ -88,12 +88,21 @@
       "rh_1730": 30
      }
     ]
+   },
+   "now": {
+    "temp_c": 23,
+    "rh": 33,
+    "kind": "measured",
+    "source": "imd",
+    "url": "https://mausam.imd.gov.in/jaipur/",
+    "readAt": "2026-11-18T13:39:16Z",
+    "sameSince": "2026-11-18T13:39:16Z"
    }
   },
   "nagaur": {
    "stationId": "42242",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242",
-   "fetchedAt": "2026-11-18T13:11:50Z",
+   "fetchedAt": "2026-11-18T13:39:16Z",
    "imd": {
     "station": "Nagaur",
     "dated": "2026-11-18",
@@ -178,5 +187,12 @@
     ]
    }
   }
+ },
+ "fx": {
+  "usd_inr": 93.3558,
+  "asOf": "2026-11-18T07:30:00Z",
+  "source": "FBIL reference rate, from the RBI home page",
+  "url": "https://www.rbi.org.in/",
+  "readAt": "2026-11-18T13:39:16Z"
  }
 }
