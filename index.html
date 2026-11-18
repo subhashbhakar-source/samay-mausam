@@ -107,6 +107,11 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .clock h2{font:500 2.1rem/1 var(--display);display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap}
 .clock h2 span{font:500 1.05rem/1.2 var(--body);color:var(--ink-2)}
 .clock-date{color:var(--ink-2);font-size:.95rem}
+/* the dollar in rupees, opposite India's name */
+.in-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem}
+.fx{margin:0;text-align:right;flex:none}
+.fx-v{display:block;font:500 1.8rem/1 var(--display);color:var(--tulsi);white-space:nowrap;padding-top:.1rem}
+.fx-cap{display:block;font-size:.8125rem;line-height:1.3;color:var(--ink-2);margin-top:.15rem;white-space:nowrap}
 .clock-note{color:var(--ink-2);font-size:.95rem}
 .clock-note b{font-weight:600;color:var(--ink)}
 .clock-src{color:var(--ink-3);font-size:.875rem;line-height:1.35;margin-top:.2rem;display:flex;gap:.4rem;align-items:flex-start;max-width:34rem}
@@ -259,7 +264,10 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 
   <section class="clocks" aria-label="Time in India, Abu Dhabi and China">
     <article class="clock" id="clock-in">
-      <h2>India <span lang="hi">भारत</span></h2>
+      <div class="in-top">
+        <h2>India 🇮🇳 <span lang="hi">भारत</span></h2>
+        <p class="fx" id="fx" hidden><span class="fx-v" id="fx-v"></span><span class="fx-cap" id="fx-cap"></span></p>
+      </div>
       <p class="clock-date" id="date-in">&nbsp;</p>
       <div class="hero-box" id="hero-box"><div class="digits" id="digits-in" aria-hidden="true"></div></div>
       <p class="clock-note">Indian Standard Time, GMT+5:30</p>
@@ -313,6 +321,7 @@ a{color:var(--kumkum);text-underline-offset:.15em}
     <p>The weather, climate and time-zone figures are from Indian government websites, except the China time difference, which is from an Indian site, and Nagaur's temperature right now, which IMD does not publish and is an estimate from Open-Meteo. The running time comes from the web server that hosts this page.</p>
     <ul>
       <li>Weather and 7-day forecast: India Meteorological Department local weather reports for <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348">Jaipur (station 42348)</a> and <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242">Nagaur (station 42242)</a>. A web page cannot fetch IMD itself, <span id="how-read">so the figures are read from the two IMD pages and saved for it</span>. Each sheet says when its copy was read.</li>
+      <li>US dollar in rupees: the day's reference rate set by <a href="https://www.fbil.org.in/">Financial Benchmarks India (FBIL)</a>, as the <a href="https://www.rbi.org.in/">Reserve Bank of India's home page</a> shows it. It is set once a working day, at about 1 pm.</li>
       <li>Temperature right now: Jaipur's from the current weather on the <a href="https://mausam.imd.gov.in/jaipur/">IMD Meteorological Centre Jaipur</a> home page, which gives no time, so the time shown is when the app read it. Nagaur's is an estimate from <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0), because IMD publishes none for Nagaur.</li>
       <li>Jaipur climate normals: <a href="https://city.imd.gov.in/citywx/extreme/climat.php?id=42348">IMD climatological table, 1991 to 2020</a>.</li>
       <li>Nagaur climate: <a href="https://cgwb.gov.in/sites/default/files/2022-10/nagaur.pdf">Central Ground Water Board district report (2013)</a> and the <a href="https://nagaur.dcourts.gov.in/?p=5859">Nagaur district profile</a> on the NIC-hosted district court site. IMD publishes no climate normals for the Nagaur station.</li>
@@ -845,6 +854,7 @@ function loadFile(){
   }).then(function(j){
     if(!j||typeof j!=='object'||!j.stations||typeof j.stations!=='object')throw new Error('shape');
     var docs={};STATIONS.forEach(function(st){var x=j.stations[st.key];if(x&&x.imd)docs[st.key]={fetchedAt:x.fetchedAt,imd:x.imd,now:x.now};});
+    if(j.fx&&typeof j.fx==='object'){fxDoc=j.fx;try{localStorage.setItem('sm.fx',JSON.stringify(j.fx));}catch(e){}paintFx();}
     lastLoad=Date.now();applyDocs(docs,'live');
   });
 }
@@ -862,6 +872,21 @@ function connect(){
   loadFile().then(startFileMode,function(){
     getUse().then(function(use){if(use)connectDb(use);else{setState('offline');startFileMode();}});
   });
+}
+
+/* ================= the dollar in rupees =================
+   The day's reference rate set by FBIL, as the RBI's home page shows it. The weather job reads it with the weather;
+   it changes once a working day, at about 1 pm. The last copy is kept on the phone for use without internet. */
+var fxDoc=null;
+try{fxDoc=JSON.parse(localStorage.getItem('sm.fx')||'null');}catch(e){}
+function paintFx(){
+  var box=$('fx'),f=fxDoc;if(!box)return;
+  var r=f&&typeof f.usd_inr==='number'?f.usd_inr:NaN;
+  if(!(r>40&&r<250)){box.hidden=true;return;}
+  var at=Date.parse(f.asOf),old=isFinite(at)&&trueNow()-at>5*86400000;
+  setTxt($('fx-v'),'$1 = \u20b9'+r.toFixed(2));
+  setTxt($('fx-cap'),'RBI reference rate'+(isFinite(at)?', '+dm(zparts(IST,at)):'')+(old?' (old)':''));
+  box.hidden=false;
 }
 
 /* ================= for home =================
@@ -950,6 +975,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden){las
 window.addEventListener('online',syncClock);
 setInterval(function(){if(!document.hidden)syncClock();},10*60*1000);
 clockNote();
+paintFx();
 syncClock();
 connect();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',homeInit);else homeInit();   /* js/ghadi.js is a deferred script, ready by then */

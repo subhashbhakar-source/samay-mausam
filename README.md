@@ -30,6 +30,10 @@ node scripts/check-panchang.cjs
 
 It compares 462 dates and times: Ekadashi tithi times and fast days for 2026 and 2027, Pradosh days for 2027, festival days from 2018 to 2033 for New Delhi, and Drik Panchang's 2027 list for one far-away city. All but one agree; that one sits four minutes from its boundary. Tithi times agree with the Swiss Ephemeris to within a few seconds and come out about a minute later than the times Drik Panchang prints.
 
+## US dollar in rupees (main page only)
+
+Opposite "India" on the main page: the day's USD/INR reference rate set by Financial Benchmarks India (FBIL), as the Reserve Bank of India's home page shows it ("INR / 1 USD : 93.3558 ... (As at 1.00pm of November 18, 2026)"). The weather job reads it on each run and saves it as `fx` in `data/weather.json` when it changes, which is once a working day at about 1 pm. The page keeps the last copy on the phone and marks it "(old)" after five days.
+
 ## Temperature right now
 
 IMD's city pages give the day's maximum and minimum, not the temperature now. The weather job also saves, under each station's `now`:

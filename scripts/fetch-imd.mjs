@@ -17,6 +17,8 @@ export const pageUrl = (id) => `https://city.imd.gov.in/citywx/city_weather_test
 // It shows none for Nagaur, so Nagaur's is Open-Meteo's estimate (CC BY 4.0), marked as an estimate wherever it is shown.
 export const NOW_IMD_PAGES = ['https://mausam.imd.gov.in/jaipur/', 'https://mausamaudit.imd.gov.in/jaipur'];
 export const NOW_ESTIMATE = { nagaur: { lat: 27.202, lon: 73.734 } };
+// The rupee: the RBI's home page shows the day's reference rate set by FBIL, e.g. "INR / 1 USD : 93.3558 ... (As at 1.00pm of November 18, 2026)".
+export const RBI_HOME = 'https://www.rbi.org.in/';
 export const estimateUrl = (p) => `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m&timezone=Asia%2FKolkata`;
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const REWRITE_AFTER_MS = 110 * 60 * 1000; // with no change at IMD, still refresh the "last checked" time about every 2 hours
@@ -144,6 +146,23 @@ export function parseNowJaipur(html) {
   return { temp_c: t, rh };
 }
 
+export function parseRbiUsd(html) {
+  const flat = htmlToText(html).replace(/[\t\n|]+/g, ' ').replace(/ +/g, ' ');
+  const m = /INR\s*\/\s*1\s*USD\s*:?\s*(\d{2,3}(?:\.\d{1,4})?)/i.exec(flat);
+  if (!m) return null;
+  const rate = Number(m[1]);
+  if (!(rate > 40 && rate < 250)) return null;
+  // the first "(As at ...)" after the rate is the one for the rates; a later one marked with * is for the rouble
+  const a = /\(\s*As\s+at\s+(\d{1,2})[.:](\d{2})\s*([ap])\.?\s*m\.?\s+of\s+([A-Za-z]+)\s+(\d{1,2}),?\s*(\d{4})\s*\)/i.exec(flat.slice(m.index));
+  let asOf = null;
+  if (a) {
+    const mo = MON.indexOf(a[4].slice(0, 3).toLowerCase());
+    let h = +a[1] % 12; if (a[3].toLowerCase() === 'p') h += 12;
+    if (mo >= 0) asOf = new Date(Date.UTC(+a[6], mo, +a[5], h, +a[2]) - 330 * 60000).toISOString().replace(/\.\d+Z$/, 'Z');
+  }
+  return { usd_inr: rate, asOf };
+}
+
 // Open-Meteo's reply: { current: { time: "2026-11-18T15:30", temperature_2m: 27.4 } }, time in IST as asked
 export function parseEstimate(body) {
   const c = body && body.current;
@@ -192,7 +211,7 @@ async function main() {
   const nowIso = now.toISOString().replace(/\.\d+Z$/, 'Z');
   let old = null;
   try { old = JSON.parse(await readFile(OUT, 'utf8')); } catch { /* first run */ }
-  const out = { schema: 1, checkedAt: (old && old.checkedAt) || null, stations: { ...((old && old.stations) || {}) } };
+  const out = { schema: 1, checkedAt: (old && old.checkedAt) || null, stations: { ...((old && old.stations) || {}) }, ...(old && old.fx ? { fx: old.fx } : {}) };
   let ok = 0, changed = false;
   for (const st of STATIONS) {
     try {
@@ -240,13 +259,26 @@ async function main() {
     } catch (e) { console.log(`::warning::${key} now: ${e.message}`); }
   }
 
+  // US dollar to rupee: changes once a working day, saved when it changes
+  try {
+    const fx = parseRbiUsd(await get(RBI_HOME, { what: 'RBI' }));
+    if (!fx) console.log('::warning::fx: no INR / 1 USD rate found on the RBI home page');
+    else {
+      const prevFx = old && old.fx;
+      if (!prevFx || prevFx.usd_inr !== fx.usd_inr || prevFx.asOf !== fx.asOf) nowChanged = true;
+      out.fx = { ...fx, source: 'FBIL reference rate, from the RBI home page', url: RBI_HOME, readAt: nowIso };
+      console.log(`fx: 1 USD = ${fx.usd_inr} INR (as at ${fx.asOf})`);
+    }
+  } catch (e) { console.log(`::warning::fx: ${e.message}`); }
+  if (!out.fx && old && old.fx) out.fx = old.fx;
+
   if (!ok && !nowChanged) { console.log('Nothing new read this time. The saved figures stay as they are.'); return; }
   if (ok) out.checkedAt = nowIso;
   const age = old && old.checkedAt ? now - Date.parse(old.checkedAt) : Infinity;
   if (changed || nowChanged || process.env.FORCE_SAVE === 'true' || !(age < REWRITE_AFTER_MS)) {
     await mkdir(path.dirname(OUT), { recursive: true });
     await writeFile(OUT, JSON.stringify(out, null, 1) + '\n');
-    console.log(changed ? 'IMD figures changed: saved.' : nowChanged ? 'Temperature now changed: saved.' : 'No change at IMD: refreshed the last-checked time.');
+    console.log(changed ? 'IMD figures changed: saved.' : nowChanged ? 'Temperature now or the dollar rate changed: saved.' : 'No change at IMD: refreshed the last-checked time.');
   } else console.log('No change at IMD since the last save.');
 }
 
