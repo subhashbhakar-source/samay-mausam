@@ -13,6 +13,11 @@ export const STATIONS = [
   { key: 'nagaur', id: '42242', expect: /nagaur/i },
 ];
 export const pageUrl = (id) => `https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=${id}`;
+// The temperature right now. IMD shows one for Jaipur on its Jaipur weather centre's home page, without a time.
+// It shows none for Nagaur, so Nagaur's is Open-Meteo's estimate (CC BY 4.0), marked as an estimate wherever it is shown.
+export const NOW_IMD_PAGES = ['https://mausam.imd.gov.in/jaipur/', 'https://mausamaudit.imd.gov.in/jaipur'];
+export const NOW_ESTIMATE = { nagaur: { lat: 27.202, lon: 73.734 } };
+export const estimateUrl = (p) => `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m&timezone=Asia%2FKolkata`;
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const REWRITE_AFTER_MS = 110 * 60 * 1000; // with no change at IMD, still refresh the "last checked" time about every 2 hours
 const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -127,6 +132,27 @@ export function parseReport(html) {
   return imd;
 }
 
+// "Jaipur-AMO Jaipur 30.8° East-southeasterly 11.1km/h 36%": the first number after the station name, and the humidity after it.
+export function parseNowJaipur(html) {
+  const flat = htmlToText(html).replace(/[\t\n]+/g, ' ').replace(/ +/g, ' ');
+  const m = /Jaipur\s*-\s*AMO(?:\s+Jaipur)?[\s:|]{0,6}(-?\d{1,2}(?:\.\d+)?)\s*(°|º|o\b|deg\b)?\s*C?\b/i.exec(flat);   // only spaces between: a missing reading is not taken from the next city
+  if (!m) return null;
+  const t = Number(m[1]);
+  if (!(t > -10 && t < 55)) return null;
+  const rest = flat.slice(m.index + m[0].length, m.index + m[0].length + 90);
+  const h = /(\d{1,3})\s*%/.exec(rest), rh = h && +h[1] <= 100 ? +h[1] : null;
+  return { temp_c: t, rh };
+}
+
+// Open-Meteo's reply: { current: { time: "2026-11-18T15:30", temperature_2m: 27.4 } }, time in IST as asked
+export function parseEstimate(body) {
+  const c = body && body.current;
+  if (!c || typeof c.temperature_2m !== 'number' || typeof c.time !== 'string') return null;
+  const t = c.temperature_2m, at = Date.parse(c.time.length === 16 ? c.time + ':00+05:30' : c.time);
+  if (!(t > -10 && t < 55) || !Number.isFinite(at)) return null;
+  return { temp_c: Math.round(t * 10) / 10, at: new Date(at).toISOString().replace(/\.\d+Z$/, 'Z') };
+}
+
 export function validate(imd, st, now = new Date()) {
   const bad = [];
   if (!imd.station || !st.expect.test(imd.station)) bad.push(`station name "${imd.station}"`);
@@ -143,22 +169,22 @@ export function validate(imd, st, now = new Date()) {
   return bad;
 }
 
-async function get(u) {
+async function get(u, { min = 400, what = 'IMD', accept = 'text/html,*/*' } = {}) {
   let last;
   for (const wait of [0, 4000, 10000]) {
     if (wait) await new Promise((r) => setTimeout(r, wait));
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), 25000);
     try {
-      const res = await fetch(u, { headers: { 'User-Agent': UA, Accept: 'text/html,*/*' }, signal: ctl.signal, redirect: 'follow' });
+      const res = await fetch(u, { headers: { 'User-Agent': UA, Accept: accept }, signal: ctl.signal, redirect: 'follow' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = await res.text();
-      if (body.length < 400) throw new Error(`short reply (${body.length} bytes)`);
+      if (body.length < min) throw new Error(`short reply (${body.length} bytes)`);
       return body;
     } catch (e) { last = e; } finally { clearTimeout(timer); }
   }
   const why = last && last.cause ? `${last.message}: ${last.cause.code || last.cause.message}` : String(last && last.message);
-  throw new Error(`could not read IMD (${why})`);
+  throw new Error(`could not read ${what} (${why})`);
 }
 
 async function main() {
@@ -180,20 +206,47 @@ async function main() {
       }
       const prev = old && old.stations && old.stations[st.key];
       if (!prev || JSON.stringify(prev.imd) !== JSON.stringify(imd)) changed = true;
-      out.stations[st.key] = { stationId: st.id, source: pageUrl(st.id), fetchedAt: nowIso, imd };
+      out.stations[st.key] = { ...(prev || {}), stationId: st.id, source: pageUrl(st.id), fetchedAt: nowIso, imd };
       ok += 1;
       console.log(`${st.key}: ${imd.station}, dated ${imd.dated}, max ${imd.max_c}, min ${imd.min_c}, ${imd.forecast.length} forecast days`);
     } catch (e) {
       console.log(`::warning::${st.key}: ${e.message}`);
     }
   }
-  if (!ok) { console.log('Nothing read this time. The saved figures stay as they are.'); return; }
-  out.checkedAt = nowIso;
+  // The temperature right now: saved when it moves by a degree, and at least hourly
+  let nowChanged = false;
+  const keepNow = (key, nowObj) => {
+    const prevNow = old && old.stations && old.stations[key] && old.stations[key].now;
+    if (!prevNow || Math.round(prevNow.temp_c) !== Math.round(nowObj.temp_c) || !(now - Date.parse(prevNow.readAt) < 55 * 60000)) nowChanged = true;
+    out.stations[key] = { ...(out.stations[key] || {}), now: nowObj };
+  };
+  for (const u of NOW_IMD_PAGES) {
+    try {
+      const found = parseNowJaipur(await get(u, { what: 'IMD Jaipur' }));
+      if (!found) { console.log(`::warning::jaipur now: no current temperature found on ${u}`); continue; }
+      const prevNow = old && old.stations && old.stations.jaipur && old.stations.jaipur.now;
+      const same = prevNow && prevNow.temp_c === found.temp_c && prevNow.source === 'imd';
+      keepNow('jaipur', { temp_c: found.temp_c, rh: found.rh, kind: 'measured', source: 'imd', url: u, readAt: nowIso, sameSince: same ? (prevNow.sameSince || prevNow.readAt) : nowIso });
+      console.log(`jaipur now: ${found.temp_c} C (IMD, ${u})`);
+      break;
+    } catch (e) { console.log(`::warning::jaipur now: ${e.message}`); }
+  }
+  for (const [key, place] of Object.entries(NOW_ESTIMATE)) {
+    try {
+      const est = parseEstimate(JSON.parse(await get(estimateUrl(place), { min: 20, what: 'Open-Meteo', accept: 'application/json' })));
+      if (!est) { console.log(`::warning::${key} now: Open-Meteo reply not understood`); continue; }
+      keepNow(key, { temp_c: est.temp_c, kind: 'estimate', source: 'open-meteo', at: est.at, readAt: nowIso });
+      console.log(`${key} now: ${est.temp_c} C (Open-Meteo estimate for ${est.at})`);
+    } catch (e) { console.log(`::warning::${key} now: ${e.message}`); }
+  }
+
+  if (!ok && !nowChanged) { console.log('Nothing new read this time. The saved figures stay as they are.'); return; }
+  if (ok) out.checkedAt = nowIso;
   const age = old && old.checkedAt ? now - Date.parse(old.checkedAt) : Infinity;
-  if (changed || process.env.FORCE_SAVE === 'true' || !(age < REWRITE_AFTER_MS)) {
+  if (changed || nowChanged || process.env.FORCE_SAVE === 'true' || !(age < REWRITE_AFTER_MS)) {
     await mkdir(path.dirname(OUT), { recursive: true });
     await writeFile(OUT, JSON.stringify(out, null, 1) + '\n');
-    console.log(changed ? 'IMD figures changed: saved.' : 'No change at IMD: refreshed the last-checked time.');
+    console.log(changed ? 'IMD figures changed: saved.' : nowChanged ? 'Temperature now changed: saved.' : 'No change at IMD: refreshed the last-checked time.');
   } else console.log('No change at IMD since the last save.');
 }
 

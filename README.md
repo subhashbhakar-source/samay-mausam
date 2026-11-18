@@ -30,6 +30,15 @@ node scripts/check-panchang.cjs
 
 It compares 462 dates and times: Ekadashi tithi times and fast days for 2026 and 2027, Pradosh days for 2027, festival days from 2018 to 2033 for New Delhi, and Drik Panchang's 2027 list for one far-away city. All but one agree; that one sits four minutes from its boundary. Tithi times agree with the Swiss Ephemeris to within a few seconds and come out about a minute later than the times Drik Panchang prints.
 
+## Temperature right now
+
+IMD's city pages give the day's maximum and minimum, not the temperature now. The weather job also saves, under each station's `now`:
+
+- **Jaipur**: the current temperature shown on the home page of IMD's Meteorological Centre Jaipur (`https://mausam.imd.gov.in/jaipur/`, with `mausamaudit.imd.gov.in/jaipur` as a fallback). That page gives no time, so `readAt` is when the job read it; `sameSince` records how long the value has not changed.
+- **Nagaur**: IMD publishes no current temperature for Nagaur, so this is an estimate from Open-Meteo (CC BY 4.0), with the time it is for (`at`). Both pages mark it as an estimate and credit Open-Meteo.
+
+The job saves when either value moves by a degree, and at least hourly. The pages show the value only while it is fresh: read within the last 3 hours, and for IMD, not stuck at one value for 6 hours.
+
 ## The family's page
 
 `ghar.html` is a second page for the family at home, in Hindi and set larger for older eyes: India's time and the ship's time side by side, then today's panchang. At the end it gives the weather for Jaipur and Nagaur in a few plain lines: today, tomorrow, rain, sunrise, sunset and moonrise. Those figures are the same IMD ones the main page shows, read from `data/weather.json`; IMD's English forecast phrases are turned into Hindi piece by piece, and a phrase the page does not know is shown as IMD wrote it. It uses the same panchang files as the main page; the panel's styles are shared in `css/panchang.css`.

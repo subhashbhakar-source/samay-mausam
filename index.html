@@ -140,6 +140,10 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
 .sheet-head h2{font:500 2.5rem/1 var(--display);display:flex;align-items:baseline;gap:.55rem;flex-wrap:wrap}
 .sheet-head h2 span{font:500 1.15rem/1.2 var(--body);color:var(--ink-2)}
+.sheet-right{display:flex;align-items:flex-start;gap:.7rem;flex:none}
+.cur{text-align:right}
+.cur-t{font:500 2.3rem/1 var(--display);color:var(--temp);white-space:nowrap;padding-top:.15rem}
+.cur-cap{font-size:.8125rem;line-height:1.3;color:var(--ink-2);margin-top:.15rem;white-space:nowrap}
 .meta{color:var(--ink-3);font-size:.875rem}
 .now{display:flex;flex-direction:column;gap:.45rem}
 .now-sky{font-size:1.2rem;font-weight:600;line-height:1.25}
@@ -306,9 +310,10 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 
   <section class="sources" aria-labelledby="src-h">
     <h2 id="src-h">Where the numbers come from</h2>
-    <p>The weather, climate and time-zone figures are from Indian government websites, except the China time difference, which is from an Indian site. The running time comes from the web server that hosts this page.</p>
+    <p>The weather, climate and time-zone figures are from Indian government websites, except the China time difference, which is from an Indian site, and Nagaur's temperature right now, which IMD does not publish and is an estimate from Open-Meteo. The running time comes from the web server that hosts this page.</p>
     <ul>
       <li>Weather and 7-day forecast: India Meteorological Department local weather reports for <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348">Jaipur (station 42348)</a> and <a href="https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242">Nagaur (station 42242)</a>. A web page cannot fetch IMD itself, <span id="how-read">so the figures are read from the two IMD pages and saved for it</span>. Each sheet says when its copy was read.</li>
+      <li>Temperature right now: Jaipur's from the current weather on the <a href="https://mausam.imd.gov.in/jaipur/">IMD Meteorological Centre Jaipur</a> home page, which gives no time, so the time shown is when the app read it. Nagaur's is an estimate from <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0), because IMD publishes none for Nagaur.</li>
       <li>Jaipur climate normals: <a href="https://city.imd.gov.in/citywx/extreme/climat.php?id=42348">IMD climatological table, 1991 to 2020</a>.</li>
       <li>Nagaur climate: <a href="https://cgwb.gov.in/sites/default/files/2022-10/nagaur.pdf">Central Ground Water Board district report (2013)</a> and the <a href="https://nagaur.dcourts.gov.in/?p=5859">Nagaur district profile</a> on the NIC-hosted district court site. IMD publishes no climate normals for the Nagaur station.</li>
       <li>Indian Standard Time is kept by <a href="https://csirnews.niscpr.res.in/home/article/798">CSIR-National Physical Laboratory</a>, New Delhi.</li>
@@ -558,8 +563,20 @@ function normalise(doc){
     min:{v:temp(imd.min_c),on:parseISO(imd.min_recorded_on),dep:num(imd.min_departure_c)},
     rain:rainOf(imd.rain_24h),rh0830:pct(imd.rh_0830),rh1730:pct(imd.rh_1730),
     sunset:hhmm(imd.sunset),sunrise:hhmm(imd.sunrise_tomorrow),moonset:hhmm(imd.moonset),moonrise:hhmm(imd.moonrise),
-    forecast:fc
+    forecast:fc,now:nowOf(doc.now)
   };
+}
+/* The temperature right now: Jaipur's as IMD's Jaipur centre shows it (measured), Nagaur's as Open-Meteo estimates it.
+   Shown only while it is fresh: read within 3 hours, and, for IMD, not stuck at one value for 6 hours. */
+function nowOf(v){
+  if(!v||typeof v!=='object')return null;
+  var t=temp(v.temp_c),read=Date.parse(v.readAt),same=Date.parse(v.sameSince),at=Date.parse(v.at);
+  if(t==null||!isFinite(read))return null;
+  return {t:t,est:v.kind==='estimate',read:read,same:isFinite(same)?same:null,at:isFinite(at)?at:read};
+}
+function nowFresh(n){
+  var t=trueNow();
+  return !!n&&t-n.read<3*3600000&&t-n.read>-600000&&!(!n.est&&n.same&&t-n.same>6*3600000);
 }
 
 /* ================= weather drawing ================= */
@@ -652,12 +669,17 @@ function tile(label,value,unit,subs){
     el('p',{'class':'tile-v'+(missing?' is-missing':'')},missing?'Not reported':value,(!missing&&unit)?el('span',{'class':'unit'},unit):null),
     (subs||[]).filter(Boolean).map(function(s){return el('p',{'class':'tile-s'},s);}));
 }
-function head(st,sky){
+function head(st,sky,m){
+  var n=m&&nowFresh(m.now)?m.now:null;
   return el('header',{'class':'sheet-head'},
     el('div',null,
       el('h2',null,st.name,el('span',{lang:'hi'},st.hi)),
       el('p',{'class':'meta'},'IMD station '+st.id+(st.imd?', '+st.imd:''))),
-    sky?glyph(sky,56):null);
+    el('div',{'class':'sheet-right'},
+      n?el('div',{'class':'cur'},
+        el('p',{'class':'cur-t'},n.est?'\u2248 '+Math.round(n.t)+'\u00b0C':one(n.t)+'\u00b0C'),
+        el('p',{'class':'cur-cap'},n.est?'Estimate for '+clockText(zparts(IST,n.at)):'Now, IMD at '+clockText(zparts(IST,n.read)))):null,
+      sky?glyph(sky,56):null));
 }
 function forecastBlock(m,today,dom){
   var rows=m.forecast.filter(function(r){return dn(r.date)>=dn(today);});
@@ -742,7 +764,7 @@ function renderSheet(st,dom){
     kids.push(st.key==='jaipur'?jaipurClimate(today):nagaurClimate());
   }else{
     var row=null;m.forecast.forEach(function(r){if(dn(r.date)===dn(today))row=r;});
-    kids.push(head(st,row?skyKind(row.text):null));
+    kids.push(head(st,row?skyKind(row.text):null,m));
     var now=el('div',{'class':'now'});
     if(row){
       now.appendChild(el('p',{'class':'now-sky'},'Today: '+(row.text||'no description from IMD')));
@@ -822,7 +844,7 @@ function loadFile(){
     if(!r.ok)throw new Error('http '+r.status);return r.json();
   }).then(function(j){
     if(!j||typeof j!=='object'||!j.stations||typeof j.stations!=='object')throw new Error('shape');
-    var docs={};STATIONS.forEach(function(st){var x=j.stations[st.key];if(x&&x.imd)docs[st.key]={fetchedAt:x.fetchedAt,imd:x.imd};});
+    var docs={};STATIONS.forEach(function(st){var x=j.stations[st.key];if(x&&x.imd)docs[st.key]={fetchedAt:x.fetchedAt,imd:x.imd,now:x.now};});
     lastLoad=Date.now();applyDocs(docs,'live');
   });
 }
