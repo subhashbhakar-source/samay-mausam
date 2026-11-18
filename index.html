@@ -356,6 +356,13 @@ function wdOf(p){return new Date(Date.UTC(p.y,p.mo,p.d)).getUTCDay();}
    for the time and keeps the difference. Every clock and date below uses trueNow(). */
 var skew=0,clockState='checking',syncing=false;
 function trueNow(){return Date.now()+skew;}
+/* The last difference found while online is kept on the phone. Without internet the clocks use it: that stays
+   right as long as this phone's clock has not been changed since. Until the first check of a visit answers,
+   it stands in too, so the clock does not first show the phone's own time. */
+var lastCheck=null;
+try{lastCheck=JSON.parse(localStorage.getItem('sm.clock')||'null');}catch(e){}
+if(!lastCheck||!isFinite(lastCheck.skew)||!isFinite(lastCheck.at)||Math.abs(lastCheck.skew)>400*86400000)lastCheck=null;
+if(lastCheck)skew=lastCheck.skew;
 window.SamayApp={now:trueNow,is24:function(){return fmt24;}};   /* the panchang panel reads the true time and the 12/24 h choice from here */
 function todayIST(){return zparts(IST,trueNow());}
 function two(n){return n<10?'0'+n:''+n;}
@@ -417,6 +424,10 @@ function clockNote(){
     var off=Math.round(skew/1000),a=Math.abs(off);
     n.appendChild(document.createTextNode(a<45?'Set from the network, not from this phone\u2019s clock.'
       :'Set from the network. This phone\u2019s own clock is '+gap(a)+(off>0?' behind':' ahead of')+' true time, so the app does not use it.'));
+  }else if(clockState==='saved'){
+    var at=zparts(IST,lastCheck.at);
+    n.appendChild(statusIcon('warn',15));
+    n.appendChild(document.createTextNode('Network time can\u2019t be reached, so this uses the last check, made on '+at.d+' '+MON3[at.mo]+' at '+two(at.h)+':'+two(at.mi)+' IST. It stays right unless this phone\u2019s clock was changed since then.'));
   }else if(clockState==='device'){
     n.appendChild(statusIcon('warn',15));
     n.appendChild(document.createTextNode('Network time can\u2019t be reached, so this is the phone\u2019s own clock. It will be wrong if the phone is set to another time.'));
@@ -427,8 +438,11 @@ function syncClock(){
   var best=null,n=0;
   function done(){
     syncing=false;
-    if(best){if(clockState!=='net'||Math.abs(best.skew-skew)>1500)skew=best.skew;clockState='net';}
-    else if(clockState!=='net'){clockState='device';skew=0;}
+    if(best){
+      if(clockState!=='net'||Math.abs(best.skew-skew)>1500)skew=best.skew;clockState='net';
+      lastCheck={skew:skew,at:trueNow()};try{localStorage.setItem('sm.clock',JSON.stringify(lastCheck));}catch(e){}
+    }
+    else if(clockState!=='net'){if(lastCheck){clockState='saved';skew=lastCheck.skew;}else{clockState='device';skew=0;}}
     clockNote();lastMinute=-1;renderWeather();homeSend();
   }
   (function one(){
@@ -850,7 +864,7 @@ function homePaint(){
   $('home-open').href=link;
   line.appendChild(el('b',{text:'For home: '}));
   if(clockState!=='net'){
-    line.appendChild(document.createTextNode(clockState==='device'
+    line.appendChild(document.createTextNode(clockState==='device'||clockState==='saved'
       ?'network time can\u2019t be reached, so this phone\u2019s time was not sent. It goes out the next time the app is open with internet on.'
       :'checking the time before sending this phone\u2019s time.'));
     return;

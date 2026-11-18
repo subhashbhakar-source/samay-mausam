@@ -66,7 +66,7 @@ Both pages open without internet once they have been opened with internet after 
 - This site is shared with the owner's other apps, each in its own folder. The worker answers only for this app's folder, and only creates or removes caches whose names start with `samay-mausam-`.
 - `js/net.js` registers the worker and shows "No Internet!" at the top right while this site can't be reached, or while a page is showing a kept copy. It checks with a small HEAD request on opening, when the phone says it is back online, when the page comes back to the front, and every two minutes while open (every 30 seconds while the badge shows).
 
-Without internet the main page's India clock falls back to the phone's own clock, as the note under it says; the family's page keeps running the ship's time from the last note it received.
+Without internet the main page's clocks use the last difference found between the phone's clock and network time (kept on the phone as `sm.clock`), and the note under the India clock says when that check was made. That stays right as long as the phone's clock has not been changed since; a phone that has never checked online falls back to its own clock, with a warning. The family's page keeps running the ship's time from the last note it received.
 
 ## Sources
 
