@@ -57,6 +57,17 @@ The database address in `js/ghadi.js` is not a secret. The database's rules are 
 }
 ```
 
+## Without internet
+
+Both pages open without internet once they have been opened with internet after this was added.
+
+- `sw.js`, a service worker, keeps a copy of the app's own files (pages, scripts, styles, icons) and of the Google fonts. The app's files come from the network whenever it answers, and the copy is refreshed each time. Without internet, or when the network has not answered in 6 seconds, the kept copy is used, and for the next 30 seconds kept copies are used at once.
+- It leaves alone, as before: the time checks (HEAD requests to this site), the weather file (each page keeps its own copy and says how old it is), the ship-time database, and every other site.
+- This site is shared with the owner's other apps, each in its own folder. The worker answers only for this app's folder, and only creates or removes caches whose names start with `samay-mausam-`.
+- `js/net.js` registers the worker and shows "No Internet!" at the top right while this site can't be reached, or while a page is showing a kept copy. It checks with a small HEAD request on opening, when the phone says it is back online, when the page comes back to the front, and every two minutes while open (every 30 seconds while the badge shows).
+
+Without internet the main page's India clock falls back to the phone's own clock, as the note under it says; the family's page keeps running the ship's time from the last note it received.
+
 ## Sources
 
 - IMD local weather report and forecast: <https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348> and `...?id=42242`
