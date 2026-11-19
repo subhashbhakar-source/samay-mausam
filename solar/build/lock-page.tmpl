@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="hi-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Solar Plant Calculator</title>
+<style>
+:root {
+  --bg: #f1f4f6; --surface: #ffffff; --ink: #0f1d28; --ink-2: #41546a; --ink-3: #5c6e7f;
+  --line: #d4dbe2; --line-strong: #aeb9c4; --accent: #1c5cab; --accent-ink: #ffffff; --bad: #b42323;
+  color-scheme: light;
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1317; --surface: #151c22; --ink: #e8edf1; --ink-2: #b4c0ca; --ink-3: #8a9aa8;
+    --line: #27323b; --line-strong: #40505c; --accent: #6aa9ee; --accent-ink: #0b1620; --bad: #f29090;
+    color-scheme: dark;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.wrap {
+  max-width: 560px; margin: 0 auto;
+  padding: 28px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px));
+  display: flex; flex-direction: column; gap: 18px;
+}
+h1 { font-size: 24px; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 18px; margin: 0; }
+p { margin: 0; }
+section { display: flex; flex-direction: column; gap: 16px; }
+.en { display: block; color: var(--ink-2); font-size: 15px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.step { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; min-height: 44px; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+button.link { border: 0; background: none; padding: 8px 0; color: var(--accent); text-decoration: underline; min-height: 0; align-self: flex-start; }
+button:disabled { opacity: 0.6; cursor: default; }
+textarea, input[type="text"] {
+  font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; width: 100%; padding: 10px;
+  border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); resize: vertical;
+}
+input[type="text"] { font-size: 17px; letter-spacing: 0.06em; min-height: 46px; resize: none; }
+textarea[readonly] { color: var(--ink-2); background: var(--bg); }
+label { font-size: 14px; color: var(--ink-2); }
+form { display: flex; flex-direction: column; gap: 10px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.msg { color: var(--bad); font-weight: 600; }
+.msg:empty { display: none; }
+.msg .en { color: var(--bad); font-weight: 400; }
+.ok { color: var(--ink); font-weight: 600; }
+.note { font-size: 14px; color: var(--ink-3); }
+.note .en { font-size: 13px; color: var(--ink-3); }
+.ok .en { font-weight: 400; }
+details { border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; color: var(--ink-2); font-size: 15px; padding: 6px 0; }
+details[open] summary { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<main class="wrap" id="wrap" hidden>
+  <h1>Solar Plant Calculator</h1>
+
+  <p id="v-busy" hidden>Khul raha hai&hellip; <span class="en" lang="en">Opening&hellip;</span></p>
+
+  <p id="v-old" class="msg" hidden></p>
+
+  <section id="v-gate" hidden>
+    <p>Yeh page sirf unhi devices par khulta hai jinhe owner ne approve kiya hai.
+      <span class="en" lang="en">This page opens only on devices its owner has approved.</span></p>
+    <p id="g-msg" class="msg" role="alert"></p>
+
+    <div class="card">
+      <div class="step">Step 1</div>
+      <p><b>Access maangein.</b> Yeh request us vyakti ko bhejein jisne aapko link diya hai.
+        <span class="en" lang="en">Ask for access. Send this request to the person who gave you the link.</span></p>
+      <textarea id="g-req" rows="4" readonly aria-label="Aapki request"></textarea>
+      <div class="row">
+        <button type="button" class="primary" id="g-send">Request bhejein</button>
+        <button type="button" id="g-copy">Request copy karein</button>
+      </div>
+      <p class="note" id="g-copied" role="status"></p>
+    </div>
+
+    <div class="card">
+      <div class="step">Step 2</div>
+      <p><b>Apni key se kholein.</b> Jo link woh wapas bhejein use dabayein, ya unka message yahan paste karein.
+        <span class="en" lang="en">Open with your key. Tap the link they send back, or paste their message here.</span></p>
+      <form id="g-form">
+        <textarea id="g-key" rows="4" aria-label="Aapko mili key" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+        <button type="submit" class="primary">Kholein</button>
+      </form>
+      <p class="note">Dono steps ke liye wahi phone aur wahi browser istemal karein.
+        <span class="en" lang="en">Use the same phone and the same browser for both steps.</span></p>
+    </div>
+
+    <details id="g-owner">
+      <summary>Main owner hoon</summary>
+      <form id="o-form">
+        <label for="o-key">Owner key</label>
+        <input type="text" id="o-key" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
+        <button type="submit" class="primary">Kholein</button>
+      </form>
+      <p id="o-msg" class="msg" role="alert"></p>
+    </details>
+  </section>
+
+  <section id="v-approve" hidden>
+    <h2>Device approve karein</h2>
+    <p>Jo request aapko mili hai use paste karein aur key banayein. Yeh key sirf usi ek device par page kholegi.
+      <span class="en" lang="en">Paste the request you received and make a key. The key opens the page on that one device only.</span></p>
+    <form id="a-form">
+      <textarea id="a-code" rows="4" aria-label="Aapko mili request" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+      <button type="submit" class="primary">Key banayein</button>
+    </form>
+    <p id="a-msg" class="msg" role="alert"></p>
+    <div class="card" id="a-out" hidden>
+      <p class="ok">Key taiyaar hai. Ise unhe wapas bhej dein.
+        <span class="en" lang="en">Key ready. Send it back to them.</span></p>
+      <textarea id="a-key" rows="6" readonly aria-label="Us device ki key"></textarea>
+      <div class="row">
+        <button type="button" class="primary" id="a-send">Key bhejein</button>
+        <button type="button" id="a-copy">Key copy karein</button>
+      </div>
+      <p class="note" id="a-copied" role="status"></p>
+    </div>
+    <button type="button" class="link" id="a-back">Calculator kholein</button>
+  </section>
+</main>
+<script>
+/*
+ * Lock for a page kept encrypted in this file. See README.md in this folder.
+ * The unzip code is tiny-inflate 1.0.3 (https://github.com/foliojs/tiny-inflate), under this licence:
+ *
+ * MIT License
+ *
+ * Copyright (c) 2015-present Devon Govett
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+(function () {
+  'use strict';
+  var P = __PAYLOAD__;
+  var inflate = (function () {
+__INFLATE__
+    return tinf_uncompress;
+  })();
+
+  var DEV = 'solar-calc.device', DKEY = 'solar-calc.key', OWN = 'solar-calc.owner';
+  var INFO = 'solar-calc/device-key/v1';
+  var EC = { name: 'ECDH', namedCurve: 'P-256' };
+  var subtle = window.crypto && window.crypto.subtle;
+  var HERE = location.origin + location.pathname;
+  var contentKey = null;                       /* held only while the approve screen is open */
+  function $(id) { return document.getElementById(id); }
+
+  /* each message: Hinglish first, English under it */
+  var TEXT = {
+    notKey: ['Yeh key jaisi nahin lag rahi. Jo message aapko mila hai woh poora paste karein.', 'That does not look like a key. Paste the whole message you received.'],
+    otherDevice: ['Yeh key kisi aur device ya browser ke liye hai. Ise wahin kholein jahan se request bheji thi, ya yahan se nayi request bhejein.', 'This key is for another device or browser. Open it where you sent the request, or send a new request from here.'],
+    stale: ['Aapki key ab is page ko nahin kholti. Nayi request bhejein.', 'Your key no longer opens this page. Send a new request.'],
+    ownerWrong: ['Yeh owner key sahi nahin hai. Check karke dobara daalein.', 'That owner key did not work. Check it and try again.'],
+    ownerNeeded: ['Device sirf owner approve kar sakta hai. Neeche owner key daalein.', 'Only the owner can approve a device. Enter the owner key below.'],
+    notRequest: ['Yeh request jaisi nahin lag rahi. Jo message aapko mila hai woh poora paste karein.', 'That does not look like a request. Paste the whole message you received.'],
+    noStore: ['Yeh browser data save nahin kar raha, isliye key yaad nahin rahegi. Link ko normal window mein kholein, private mein nahin.', 'This browser is not keeping data, so a key cannot be remembered. Open the link in a normal window, not a private one.'],
+    unsupported: ['Yeh browser page nahin khol sakta. Naya Chrome, Safari ya Firefox aur https wala link istemal karein.', 'This browser cannot open the page. Use a current Chrome, Safari or Firefox, and the https link.'],
+    copied: ['Copy ho gaya.', 'Copied.'],
+    copyFail: ['Copy nahin ho paya. Upar ka text select karke copy karein.', 'Could not copy. Select the text above and copy it.']
+  };
+  function say(el, key) {
+    el.textContent = '';
+    if (!key) return;
+    el.appendChild(document.createTextNode(TEXT[key][0]));
+    var en = document.createElement('span');
+    en.className = 'en'; en.lang = 'en'; en.textContent = TEXT[key][1];
+    el.appendChild(en);
+  }
+  function view(name) {
+    ['busy', 'old', 'gate', 'approve'].forEach(function (v) { $('v-' + v).hidden = v !== name; });
+    $('wrap').hidden = false;
+  }
+
+  /* storage that never throws */
+  function get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
+  function put(k, v) { try { window.localStorage.setItem(k, v); return window.localStorage.getItem(k) === v; } catch (e) { return false; } }
+  function drop(k) { try { window.localStorage.removeItem(k); } catch (e) {} }
+
+  /* bytes */
+  function bytes(s) {
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    var bin = atob(s), a = new Uint8Array(bin.length), i;
+    for (i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+    return a;
+  }
+  function text64(a) {
+    var s = '', i;
+    for (i = 0; i < a.length; i++) s += String.fromCharCode(a[i]);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function utf8(s) { return new TextEncoder().encode(s); }
+  function join() {
+    var n = 0, o = 0, i, out;
+    for (i = 0; i < arguments.length; i++) n += arguments[i].length;
+    out = new Uint8Array(n);
+    for (i = 0; i < arguments.length; i++) { out.set(arguments[i], o); o += arguments[i].length; }
+    return out;
+  }
+
+  /* AES-GCM with a raw 32-byte key */
+  function unseal(raw, iv, data) {
+    return subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['decrypt'])
+      .then(function (k) { return subtle.decrypt({ name: 'AES-GCM', iv: iv }, k, data); })
+      .then(function (b) { return new Uint8Array(b); });
+  }
+  function seal(raw, iv, data) {
+    return subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt'])
+      .then(function (k) { return subtle.encrypt({ name: 'AES-GCM', iv: iv }, k, data); })
+      .then(function (b) { return new Uint8Array(b); });
+  }
+
+  /* owner key -> content key */
+  function ownerBytes(typed) {
+    var clean = String(typed).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return subtle.importKey('raw', utf8(clean), 'PBKDF2', false, ['deriveBits'])
+      .then(function (k) { return subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: bytes(P.os), iterations: P.oi }, k, 256); })
+      .then(function (b) { return new Uint8Array(b); });
+  }
+  function keyFromOwner(ob) { return unseal(ob, bytes(P.ov), bytes(P.ow)); }
+
+  /* this device's own key pair; the private half never leaves this browser */
+  function device(create) {
+    var saved = get(DEV), o = null;
+    if (saved) { try { o = JSON.parse(saved); } catch (e) { o = null; } }
+    if (o && o.j && o.p) {
+      return subtle.importKey('jwk', o.j, EC, false, ['deriveBits']).then(function (priv) { return { priv: priv, pub: bytes(o.p) }; });
+    }
+    if (!create) return Promise.resolve(null);
+    return subtle.generateKey(EC, true, ['deriveBits']).then(function (pair) {
+      return Promise.all([subtle.exportKey('jwk', pair.privateKey), subtle.exportKey('raw', pair.publicKey)]).then(function (r) {
+        var pub = new Uint8Array(r[1]);
+        if (!put(DEV, JSON.stringify({ j: r[0], p: text64(pub) }))) throw new Error('nostore');
+        return { priv: pair.privateKey, pub: pub };
+      });
+    });
+  }
+  /* the secret two key pairs share, tied to both public halves */
+  function sharedKey(priv, otherPub, ephPub, devPub) {
+    return subtle.importKey('raw', otherPub, EC, false, [])
+      .then(function (pub) { return subtle.deriveBits({ name: 'ECDH', public: pub }, priv, 256); })
+      .then(function (bits) { return subtle.digest('SHA-256', join(new Uint8Array(bits), ephPub, devPub, utf8(INFO))); })
+      .then(function (h) { return new Uint8Array(h); });
+  }
+  /* owner: seal the content key for one device */
+  function makeDeviceKey(K, devPub) {
+    return subtle.generateKey(EC, true, ['deriveBits']).then(function (eph) {
+      return subtle.exportKey('raw', eph.publicKey).then(function (er) {
+        var ephPub = new Uint8Array(er), iv = window.crypto.getRandomValues(new Uint8Array(12));
+        return sharedKey(eph.privateKey, devPub, ephPub, devPub)
+          .then(function (kek) { return seal(kek, iv, K); })
+          .then(function (ct) { return 'K1.' + text64(join(ephPub, iv, ct)); });
+      });
+    });
+  }
+  /* a device: open a sealed key with its own private half */
+  function keyFromDeviceKey(str) {
+    var m = /K1\.([A-Za-z0-9_-]{120,})/.exec(String(str || '')), rawKey;
+    if (!m) return Promise.reject(new Error('format'));
+    try { rawKey = bytes(m[1]); } catch (e) { return Promise.reject(new Error('format')); }
+    if (rawKey.length !== 125) return Promise.reject(new Error('format'));
+    return device(false).then(function (d) {
+      if (!d) throw new Error('other');
+      var ephPub = rawKey.slice(0, 65), iv = rawKey.slice(65, 77), ct = rawKey.slice(77);
+      return sharedKey(d.priv, ephPub, ephPub, d.pub).then(function (kek) { return unseal(kek, iv, ct); })
+        .then(function (K) { return { K: K, text: 'K1.' + m[1] }; }, function () { throw new Error('other'); });
+    });
+  }
+
+  /* content key -> the page */
+  function pageFrom(K) {
+    return unseal(K, bytes(P.iv), bytes(P.ct)).then(function (zipped) {
+      return new TextDecoder('utf-8').decode(inflate(zipped, new Uint8Array(P.n)));
+    });
+  }
+  function tidyAddress() { try { window.history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+  function showPage(K) {
+    return pageFrom(K).then(function (html) {
+      tidyAddress();
+      document.open();
+      document.write(html);
+      document.close();
+    });
+  }
+
+  /* sending and copying */
+  function send(text) {
+    if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  }
+  function copy(area, note) {
+    function done(ok) { say(note, ok ? 'copied' : 'copyFail'); }
+    function byHand() {
+      var ok = false;
+      try { area.focus(); area.select(); ok = document.execCommand('copy'); } catch (e) {}
+      done(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(area.value).then(function () { done(true); }, byHand);
+    else byHand();
+  }
+
+  /* ---- the lock screen ---- */
+  function gate(message, ownerOpen) {
+    view('gate');
+    say($('g-msg'), message || null);
+    if (ownerOpen) $('g-owner').open = true;
+    device(true).then(function (d) {
+      $('g-req').value = 'Solar Plant Calculator: kripya mera device approve karein.\n' + HERE + '#approve=D1.' + text64(d.pub);
+    }, function () { say($('g-msg'), 'noStore'); $('g-send').disabled = true; $('g-copy').disabled = true; });
+  }
+  function tryDeviceKey(str, onFail) {
+    return keyFromDeviceKey(str).then(function (r) {
+      put(DKEY, r.text);
+      return showPage(r.K);
+    }).catch(function (e) { onFail(e && e.message === 'format' ? 'notKey' : 'otherDevice'); });
+  }
+
+  /* ---- the owner's approve screen ---- */
+  function approve(K, request) {
+    contentKey = K;
+    view('approve');
+    $('a-out').hidden = true;
+    say($('a-msg'), null);
+    if (request) { $('a-code').value = request; makeFromRequest(); }
+  }
+  function makeFromRequest() {
+    var m = /D1\.([A-Za-z0-9_-]{80,})/.exec($('a-code').value), devPub;
+    $('a-out').hidden = true;
+    say($('a-copied'), null);
+    try { devPub = m ? bytes(m[1]) : null; } catch (e) { devPub = null; }
+    if (!devPub || devPub.length !== 65) { say($('a-msg'), 'notRequest'); return; }
+    makeDeviceKey(contentKey, devPub).then(function (k) {
+      say($('a-msg'), null);
+      $('a-key').value = 'Solar Plant Calculator: yeh aapki key hai. Yeh sirf aapke device par chalegi.\n' + HERE + '#key=' + k;
+      $('a-out').hidden = false;
+    }, function () { say($('a-msg'), 'notRequest'); });
+  }
+
+  /* ---- start ---- */
+  function hashValue(name) {
+    var m = new RegExp('[#&]' + name + '=([^&]*)').exec(location.hash || '');
+    if (!m) return null;
+    try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+  }
+  function start() {
+    var wantsApprove = /^#approve/.test(location.hash || ''), request = hashValue('approve');
+    var linkKey = hashValue('key'), owner = get(OWN), saved = get(DKEY);
+
+    if (owner) {
+      view('busy');
+      keyFromOwner(bytes(owner)).then(function (K) {
+        if (wantsApprove) { approve(K, request ? 'D1.' + request.replace(/^D1\./, '') : null); return null; }
+        return showPage(K);
+      }).catch(function () { drop(OWN); start(); });
+      return;
+    }
+    if (wantsApprove) { gate('ownerNeeded', true); return; }
+    if (linkKey) {
+      view('busy');
+      tryDeviceKey(linkKey, function (why) {
+        if (saved && saved !== linkKey) tryDeviceKey(saved, function () { drop(DKEY); gate(why); });
+        else gate(why);
+      });
+      return;
+    }
+    if (saved) {
+      view('busy');
+      tryDeviceKey(saved, function () { drop(DKEY); gate('stale'); });
+      return;
+    }
+    gate(null);
+  }
+
+  $('g-send').addEventListener('click', function () { send($('g-req').value); });
+  $('g-copy').addEventListener('click', function () { copy($('g-req'), $('g-copied')); });
+  $('g-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    say($('g-msg'), null);
+    tryDeviceKey($('g-key').value, function (why) { say($('g-msg'), why); $('g-msg').scrollIntoView({ block: 'center' }); });
+  });
+  $('o-form').addEventListener('submit', function (e) {
+    var btn = e.target.querySelector('button');
+    e.preventDefault();
+    say($('o-msg'), null);
+    btn.disabled = true;
+    ownerBytes($('o-key').value).then(function (ob) {
+      return keyFromOwner(ob).then(function (K) {
+        put(OWN, text64(ob));
+        if (/^#approve/.test(location.hash || '')) { var r = hashValue('approve'); approve(K, r ? 'D1.' + r.replace(/^D1\./, '') : null); return null; }
+        return showPage(K);
+      });
+    }).catch(function () { btn.disabled = false; say($('o-msg'), 'ownerWrong'); });
+  });
+  $('a-form').addEventListener('submit', function (e) { e.preventDefault(); makeFromRequest(); });
+  $('a-send').addEventListener('click', function () { send($('a-key').value); });
+  $('a-copy').addEventListener('click', function () { copy($('a-key'), $('a-copied')); });
+  $('a-back').addEventListener('click', function () { if (contentKey) showPage(contentKey); });
+  window.addEventListener('hashchange', function () { location.reload(); });
+
+  if (!subtle || !window.TextDecoder || !window.TextEncoder || !window.Promise) { view('old'); say($('v-old'), 'unsupported'); }
+  else start();
+})();
+</script>
+</body>
+</html>
