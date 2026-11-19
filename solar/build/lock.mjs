@@ -90,7 +90,7 @@ const OWNER_BUTTON = '\n<script>(function(){' +
   'window.addEventListener("hashchange",function(){if(/^#(approve|key)/.test(location.hash))location.reload()});' +
   'var own=null;try{own=window.localStorage.getItem("solar-calc.owner")}catch(e){}' +
   'if(!own)return;var b=document.createElement("button");b.type="button";b.className="btn";b.id="owner-approve";' +
-  'b.textContent="Device approve karein";b.addEventListener("click",function(){location.hash="#approve";location.reload()});' +
+  'b.textContent="Key banayein";b.addEventListener("click",function(){location.hash="#approve";location.reload()});' +
   '(document.querySelector(".top-actions")||document.body).appendChild(b)})();</script>\n';
 const page = readFileSync(pagePath, 'utf8');
 if (/<html[\s>]|<body[\s>]/i.test(page)) { console.error('--page must be the artifact form of the page, without <html> or <body> tags.'); process.exit(1); }

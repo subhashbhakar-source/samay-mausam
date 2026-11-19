@@ -32,9 +32,8 @@ h1 { font-size: 24px; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
 h2 { font-size: 18px; margin: 0; }
 p { margin: 0; }
 section { display: flex; flex-direction: column; gap: 16px; }
-.en { display: block; color: var(--ink-2); font-size: 15px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.step { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2); }
+.step { font-weight: 600; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; }
 button { font: inherit; min-height: 44px; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
@@ -51,11 +50,8 @@ form { display: flex; flex-direction: column; gap: 10px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .msg { color: var(--bad); font-weight: 600; }
 .msg:empty { display: none; }
-.msg .en { color: var(--bad); font-weight: 400; }
-.ok { color: var(--ink); font-weight: 600; }
 .note { font-size: 14px; color: var(--ink-3); }
-.note .en { font-size: 13px; color: var(--ink-3); }
-.ok .en { font-weight: 400; }
+.note:empty { display: none; }
 details { border-top: 1px solid var(--line); padding-top: 12px; }
 summary { cursor: pointer; color: var(--ink-2); font-size: 15px; padding: 6px 0; }
 details[open] summary { margin-bottom: 10px; }
@@ -65,44 +61,35 @@ details[open] summary { margin-bottom: 10px; }
 <main class="wrap" id="wrap" hidden>
   <h1>Solar Plant Calculator</h1>
 
-  <p id="v-busy" hidden>Khul raha hai&hellip; <span class="en" lang="en">Opening&hellip;</span></p>
+  <p id="v-busy" hidden>Khul raha hai&hellip;</p>
 
   <p id="v-old" class="msg" hidden></p>
 
   <section id="v-gate" hidden>
-    <p>Yeh page sirf unhi devices par khulta hai jinhe owner ne approve kiya hai.
-      <span class="en" lang="en">This page opens only on devices its owner has approved.</span></p>
     <p id="g-msg" class="msg" role="alert"></p>
 
     <div class="card">
-      <div class="step">Step 1</div>
-      <p><b>Access maangein.</b> Yeh request us vyakti ko bhejein jisne aapko link diya hai.
-        <span class="en" lang="en">Ask for access. Send this request to the person who gave you the link.</span></p>
-      <textarea id="g-req" rows="4" readonly aria-label="Aapki request"></textarea>
+      <p class="step">1. Jisne link diya, unhe request bhejein</p>
       <div class="row">
         <button type="button" class="primary" id="g-send">Request bhejein</button>
-        <button type="button" id="g-copy">Request copy karein</button>
+        <button type="button" id="g-copy">Copy</button>
       </div>
       <p class="note" id="g-copied" role="status"></p>
+      <textarea id="g-req" rows="4" readonly hidden aria-label="Request"></textarea>
     </div>
 
     <div class="card">
-      <div class="step">Step 2</div>
-      <p><b>Apni key se kholein.</b> Jo link woh wapas bhejein use dabayein, ya unka message yahan paste karein.
-        <span class="en" lang="en">Open with your key. Tap the link they send back, or paste their message here.</span></p>
+      <p class="step">2. Key ka link dabayein, ya yahan paste karein</p>
       <form id="g-form">
-        <textarea id="g-key" rows="4" aria-label="Aapko mili key" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+        <textarea id="g-key" rows="3" aria-label="Key" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
         <button type="submit" class="primary">Kholein</button>
       </form>
-      <p class="note">Dono steps ke liye wahi phone aur wahi browser istemal karein.
-        <span class="en" lang="en">Use the same phone and the same browser for both steps.</span></p>
     </div>
 
     <details id="g-owner">
       <summary>Main owner hoon</summary>
       <form id="o-form">
-        <label for="o-key">Owner key</label>
-        <input type="text" id="o-key" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
+        <input type="text" id="o-key" aria-label="Owner key" placeholder="Owner key" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
         <button type="submit" class="primary">Kholein</button>
       </form>
       <p id="o-msg" class="msg" role="alert"></p>
@@ -110,23 +97,23 @@ details[open] summary { margin-bottom: 10px; }
   </section>
 
   <section id="v-approve" hidden>
-    <h2>Device approve karein</h2>
-    <p>Jo request aapko mili hai use paste karein aur key banayein. Yeh key sirf usi ek device par page kholegi.
-      <span class="en" lang="en">Paste the request you received and make a key. The key opens the page on that one device only.</span></p>
-    <form id="a-form">
-      <textarea id="a-code" rows="4" aria-label="Aapko mili request" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
-      <button type="submit" class="primary">Key banayein</button>
-    </form>
+    <h2>Key banayein</h2>
+    <div class="card" id="a-in">
+      <p class="step">1. Request yahan paste karein</p>
+      <form id="a-form">
+        <textarea id="a-code" rows="3" aria-label="Request" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+        <button type="submit" class="primary">Key banayein</button>
+      </form>
+    </div>
     <p id="a-msg" class="msg" role="alert"></p>
     <div class="card" id="a-out" hidden>
-      <p class="ok">Key taiyaar hai. Ise unhe wapas bhej dein.
-        <span class="en" lang="en">Key ready. Send it back to them.</span></p>
-      <textarea id="a-key" rows="6" readonly aria-label="Us device ki key"></textarea>
+      <p class="step" id="a-step">2. Key wapas bhejein</p>
       <div class="row">
         <button type="button" class="primary" id="a-send">Key bhejein</button>
-        <button type="button" id="a-copy">Key copy karein</button>
+        <button type="button" id="a-copy">Copy</button>
       </div>
       <p class="note" id="a-copied" role="status"></p>
+      <textarea id="a-key" rows="5" readonly hidden aria-label="Key"></textarea>
     </div>
     <button type="button" class="link" id="a-back">Calculator kholein</button>
   </section>
@@ -174,27 +161,19 @@ __INFLATE__
   var contentKey = null;                       /* held only while the approve screen is open */
   function $(id) { return document.getElementById(id); }
 
-  /* each message: Hinglish first, English under it */
   var TEXT = {
-    notKey: ['Yeh key jaisi nahin lag rahi. Jo message aapko mila hai woh poora paste karein.', 'That does not look like a key. Paste the whole message you received.'],
-    otherDevice: ['Yeh key kisi aur device ya browser ke liye hai. Ise wahin kholein jahan se request bheji thi, ya yahan se nayi request bhejein.', 'This key is for another device or browser. Open it where you sent the request, or send a new request from here.'],
-    stale: ['Aapki key ab is page ko nahin kholti. Nayi request bhejein.', 'Your key no longer opens this page. Send a new request.'],
-    ownerWrong: ['Yeh owner key sahi nahin hai. Check karke dobara daalein.', 'That owner key did not work. Check it and try again.'],
-    ownerNeeded: ['Device sirf owner approve kar sakta hai. Neeche owner key daalein.', 'Only the owner can approve a device. Enter the owner key below.'],
-    notRequest: ['Yeh request jaisi nahin lag rahi. Jo message aapko mila hai woh poora paste karein.', 'That does not look like a request. Paste the whole message you received.'],
-    noStore: ['Yeh browser data save nahin kar raha, isliye key yaad nahin rahegi. Link ko normal window mein kholein, private mein nahin.', 'This browser is not keeping data, so a key cannot be remembered. Open the link in a normal window, not a private one.'],
-    unsupported: ['Yeh browser page nahin khol sakta. Naya Chrome, Safari ya Firefox aur https wala link istemal karein.', 'This browser cannot open the page. Use a current Chrome, Safari or Firefox, and the https link.'],
-    copied: ['Copy ho gaya.', 'Copied.'],
-    copyFail: ['Copy nahin ho paya. Upar ka text select karke copy karein.', 'Could not copy. Select the text above and copy it.']
+    notKey: 'Yeh key sahi nahin hai. Poora message paste karein.',
+    otherDevice: 'Yeh key is device ke liye nahin hai. Nayi request bhejein.',
+    stale: 'Key ab kaam nahin karti. Nayi request bhejein.',
+    ownerWrong: 'Owner key galat hai.',
+    ownerNeeded: 'Pehle owner key daalein.',
+    notRequest: 'Yeh request sahi nahin hai. Poora message paste karein.',
+    noStore: 'Private window mein nahin khulega. Normal window mein kholein.',
+    unsupported: 'Yeh browser purana hai. Naya Chrome ya Safari istemal karein.',
+    copied: 'Copy ho gaya.',
+    copyFail: 'Copy nahin hua. Neeche ka text copy karein.'
   };
-  function say(el, key) {
-    el.textContent = '';
-    if (!key) return;
-    el.appendChild(document.createTextNode(TEXT[key][0]));
-    var en = document.createElement('span');
-    en.className = 'en'; en.lang = 'en'; en.textContent = TEXT[key][1];
-    el.appendChild(en);
-  }
+  function say(el, key) { el.textContent = key ? TEXT[key] : ''; }
   function view(name) {
     ['busy', 'old', 'gate', 'approve'].forEach(function (v) { $('v-' + v).hidden = v !== name; });
     $('wrap').hidden = false;
@@ -317,10 +296,12 @@ __INFLATE__
     if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
   }
+  /* the text sits in a hidden box; the box is shown only when copying fails, so it can be copied by hand */
   function copy(area, note) {
-    function done(ok) { say(note, ok ? 'copied' : 'copyFail'); }
+    function done(ok) { area.hidden = ok; say(note, ok ? 'copied' : 'copyFail'); }
     function byHand() {
       var ok = false;
+      area.hidden = false;
       try { area.focus(); area.select(); ok = document.execCommand('copy'); } catch (e) {}
       done(ok);
     }
@@ -334,7 +315,7 @@ __INFLATE__
     say($('g-msg'), message || null);
     if (ownerOpen) $('g-owner').open = true;
     device(true).then(function (d) {
-      $('g-req').value = 'Solar Plant Calculator: kripya mera device approve karein.\n' + HERE + '#approve=D1.' + text64(d.pub);
+      $('g-req').value = 'Solar Plant Calculator: mera device approve karein\n' + HERE + '#approve=D1.' + text64(d.pub);
     }, function () { say($('g-msg'), 'noStore'); $('g-send').disabled = true; $('g-copy').disabled = true; });
   }
   function tryDeviceKey(str, onFail) {
@@ -350,6 +331,9 @@ __INFLATE__
     view('approve');
     $('a-out').hidden = true;
     say($('a-msg'), null);
+    /* a request that came as a link needs no pasting: the key is made at once */
+    $('a-in').hidden = !!request;
+    $('a-step').textContent = request ? 'Key taiyaar hai. Wapas bhejein.' : '2. Key wapas bhejein';
     if (request) { $('a-code').value = request; makeFromRequest(); }
   }
   function makeFromRequest() {
@@ -357,12 +341,12 @@ __INFLATE__
     $('a-out').hidden = true;
     say($('a-copied'), null);
     try { devPub = m ? bytes(m[1]) : null; } catch (e) { devPub = null; }
-    if (!devPub || devPub.length !== 65) { say($('a-msg'), 'notRequest'); return; }
+    if (!devPub || devPub.length !== 65) { $('a-in').hidden = false; say($('a-msg'), 'notRequest'); return; }
     makeDeviceKey(contentKey, devPub).then(function (k) {
       say($('a-msg'), null);
-      $('a-key').value = 'Solar Plant Calculator: yeh aapki key hai. Yeh sirf aapke device par chalegi.\n' + HERE + '#key=' + k;
+      $('a-key').value = 'Solar Plant Calculator: aapki key\n' + HERE + '#key=' + k;
       $('a-out').hidden = false;
-    }, function () { say($('a-msg'), 'notRequest'); });
+    }, function () { $('a-in').hidden = false; say($('a-msg'), 'notRequest'); });
   }
 
   /* ---- start ---- */

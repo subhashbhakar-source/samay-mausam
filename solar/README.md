@@ -9,7 +9,7 @@ A loan, tax and take-home calculator for a solar power plant, in Hinglish and En
 - **The owner** opens it with the owner key, on any device. The key is typed once on a device and then remembered there.
 - **Anyone else** sees a lock screen with a request to send to the owner. The owner taps the request link, and the page makes a key for that one device. The key is a link: tapping it opens the calculator, and the device remembers it.
 - A key works only in the browser that sent the request. A forwarded link or key opens nothing on another device.
-- The owner can make a key for one more device at any time, from the "Device approve karein" button on the calculator or from any request link.
+- The owner can make a key for one more device at any time, from the "Key banayein" button on the calculator or from any request link.
 - A device loses its key when its browser data is cleared, or when another phone or browser is used. It then needs a new request and a new key. An iPhone may clear a site's data by itself after some weeks without a visit.
 
 What the lock does not do: an approved person can still show the screen to others or save the tables. One device cannot be removed on its own. To shut everyone out, build the page again with a new content key (see below) and approve the wanted devices again.
