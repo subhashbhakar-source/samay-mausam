@@ -1,23 +1,23 @@
 {
  "schema": 1,
- "checkedAt": "2026-11-19T11:28:29Z",
+ "checkedAt": "2026-11-19T12:35:18Z",
  "stations": {
   "jaipur": {
    "stationId": "42348",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348",
-   "fetchedAt": "2026-11-19T11:28:29Z",
+   "fetchedAt": "2026-11-19T12:35:18Z",
    "imd": {
     "station": "Jaipur-AMO Jaipur",
     "dated": "2026-11-19",
-    "max_c": null,
+    "max_c": 27.9,
     "max_recorded_on": "2026-11-19",
-    "max_departure_c": null,
+    "max_departure_c": -1.1,
     "min_c": 13.7,
     "min_recorded_on": "2026-11-19",
     "min_departure_c": 0,
     "rain_24h": "NIL",
     "rh_0830": 62,
-    "rh_1730": null,
+    "rh_1730": 34,
     "rh_1730_recorded_on": "2026-11-19",
     "sunset": "17:35",
     "sunrise_tomorrow": "06:49",
@@ -90,19 +90,19 @@
     ]
    },
    "now": {
-    "temp_c": 26,
-    "rh": 23,
+    "temp_c": 25,
+    "rh": 34,
     "kind": "measured",
     "source": "imd",
     "url": "https://mausam.imd.gov.in/jaipur/",
-    "readAt": "2026-11-19T11:28:29Z",
-    "sameSince": "2026-11-19T11:28:29Z"
+    "readAt": "2026-11-19T12:35:18Z",
+    "sameSince": "2026-11-19T12:35:18Z"
    }
   },
   "nagaur": {
    "stationId": "42242",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242",
-   "fetchedAt": "2026-11-19T11:28:29Z",
+   "fetchedAt": "2026-11-19T12:35:18Z",
    "imd": {
     "station": "Nagaur",
     "dated": "2026-11-19",
@@ -187,11 +187,11 @@
     ]
    },
    "now": {
-    "temp_c": 25.3,
+    "temp_c": 21.5,
     "kind": "estimate",
     "source": "open-meteo",
-    "at": "2026-11-19T11:15:00Z",
-    "readAt": "2026-11-19T11:28:29Z"
+    "at": "2026-11-19T12:30:00Z",
+    "readAt": "2026-11-19T12:35:18Z"
    }
   }
  },
@@ -200,13 +200,13 @@
   "asOf": "2026-11-19T07:30:00Z",
   "source": "FBIL reference rate, from the RBI home page",
   "url": "https://www.rbi.org.in/",
-  "readAt": "2026-11-19T11:28:29Z",
+  "readAt": "2026-11-19T12:35:18Z",
   "sbi": {
    "tt_buy": 92.8,
    "tt_sell": 93.65,
    "at": "2026-11-19T08:32:00Z",
    "url": "https://sbi.bank.in/documents/16012/1400784/FOREX_CARD_RATES.pdf",
-   "readAt": "2026-11-19T11:28:29Z"
+   "readAt": "2026-11-19T12:35:18Z"
   }
  }
 }
