@@ -1,38 +1,29 @@
 {
  "schema": 1,
- "checkedAt": "2026-11-19T02:53:17Z",
+ "checkedAt": "2026-11-19T03:58:03Z",
  "stations": {
   "jaipur": {
    "stationId": "42348",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348",
-   "fetchedAt": "2026-11-19T02:53:17Z",
+   "fetchedAt": "2026-11-19T03:58:03Z",
    "imd": {
     "station": "Jaipur-AMO Jaipur",
-    "dated": "2026-11-18",
-    "max_c": 28.7,
-    "max_recorded_on": "2026-11-18",
-    "max_departure_c": -0.3,
-    "min_c": 16.8,
-    "min_recorded_on": "2026-11-18",
-    "min_departure_c": 3.1,
+    "dated": "2026-11-19",
+    "max_c": null,
+    "max_recorded_on": "2026-11-19",
+    "max_departure_c": null,
+    "min_c": 13.7,
+    "min_recorded_on": "2026-11-19",
+    "min_departure_c": 0,
     "rain_24h": "NIL",
-    "rh_0830": 45,
-    "rh_1730": 33,
-    "rh_1730_recorded_on": "2026-11-18",
+    "rh_0830": 62,
+    "rh_1730": null,
+    "rh_1730_recorded_on": "2026-11-19",
     "sunset": "17:35",
-    "sunrise_tomorrow": "06:48",
-    "moonset": "00:18",
-    "moonrise": "13:23",
+    "sunrise_tomorrow": "06:49",
+    "moonset": "01:13",
+    "moonrise": "13:53",
     "forecast": [
-     {
-      "date": "18-Nov",
-      "min_c": 14,
-      "max_c": 29,
-      "forecast": "Mainly Clear sky",
-      "warning": "No warning",
-      "rh_0830": 60,
-      "rh_1730": 40
-     },
      {
       "date": "19-Nov",
       "min_c": 14,
@@ -90,46 +81,37 @@
     ]
    },
    "now": {
-    "temp_c": 16,
-    "rh": 55,
+    "temp_c": 18.2,
+    "rh": 62,
     "kind": "measured",
     "source": "imd",
     "url": "https://mausam.imd.gov.in/jaipur/",
-    "readAt": "2026-11-19T02:53:17Z",
-    "sameSince": "2026-11-19T02:53:17Z"
+    "readAt": "2026-11-19T03:58:03Z",
+    "sameSince": "2026-11-19T03:58:03Z"
    }
   },
   "nagaur": {
    "stationId": "42242",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242",
-   "fetchedAt": "2026-11-19T02:53:17Z",
+   "fetchedAt": "2026-11-19T03:58:03Z",
    "imd": {
     "station": "Nagaur",
-    "dated": "2026-11-18",
+    "dated": "2026-11-19",
     "max_c": null,
-    "max_recorded_on": "2026-11-18",
+    "max_recorded_on": "2026-11-19",
     "max_departure_c": null,
-    "min_c": 11,
-    "min_recorded_on": "2026-11-18",
+    "min_c": null,
+    "min_recorded_on": "2026-11-19",
     "min_departure_c": null,
-    "rain_24h": "NIL",
-    "rh_0830": 46,
+    "rain_24h": null,
+    "rh_0830": null,
     "rh_1730": null,
-    "rh_1730_recorded_on": "2026-11-18",
+    "rh_1730_recorded_on": "2026-11-19",
     "sunset": "17:43",
-    "sunrise_tomorrow": "06:57",
-    "moonset": "00:26",
-    "moonrise": "13:32",
+    "sunrise_tomorrow": "06:58",
+    "moonset": "01:21",
+    "moonrise": "14:02",
     "forecast": [
-     {
-      "date": "18-Nov",
-      "min_c": 14,
-      "max_c": 29,
-      "forecast": "Mainly Clear sky",
-      "warning": "No warning",
-      "rh_0830": 60,
-      "rh_1730": 40
-     },
      {
       "date": "19-Nov",
       "min_c": 16,
@@ -187,11 +169,11 @@
     ]
    },
    "now": {
-    "temp_c": 16.8,
+    "temp_c": 20,
     "kind": "estimate",
     "source": "open-meteo",
-    "at": "2026-11-19T02:45:00Z",
-    "readAt": "2026-11-19T02:53:17Z"
+    "at": "2026-11-19T03:45:00Z",
+    "readAt": "2026-11-19T03:58:03Z"
    }
   }
  },
@@ -200,13 +182,13 @@
   "asOf": "2026-11-18T07:30:00Z",
   "source": "FBIL reference rate, from the RBI home page",
   "url": "https://www.rbi.org.in/",
-  "readAt": "2026-11-19T02:53:17Z",
+  "readAt": "2026-11-19T03:58:03Z",
   "sbi": {
    "tt_buy": 92.95,
    "tt_sell": 93.8,
    "at": "2026-11-18T04:31:00Z",
    "url": "https://sbi.bank.in/documents/16012/1400784/FOREX_CARD_RATES.pdf",
-   "readAt": "2026-11-19T02:53:17Z"
+   "readAt": "2026-11-19T03:58:03Z"
   }
  }
 }
