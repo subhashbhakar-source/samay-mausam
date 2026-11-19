@@ -6,6 +6,9 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <title>Solar Plant Calculator</title>
+<meta name="apple-mobile-web-app-title" content="Solar Calc">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-180.png">
 <style>
 :root {
   --bg: #f1f4f6; --surface: #ffffff; --ink: #0f1d28; --ink-2: #41546a; --ink-3: #5c6e7f;
@@ -79,10 +82,13 @@ details[open] summary { margin-bottom: 10px; }
     </div>
 
     <div class="card">
-      <p class="step">2. Key ka link dabayein, ya yahan paste karein</p>
+      <p class="step" id="g-step2">2. Key ka link dabayein, ya yahan paste karein</p>
       <form id="g-form">
         <textarea id="g-key" rows="3" aria-label="Key" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
-        <button type="submit" class="primary">Kholein</button>
+        <div class="row">
+          <button type="button" id="g-paste" hidden>Paste</button>
+          <button type="submit" class="primary">Kholein</button>
+        </div>
       </form>
     </div>
 
@@ -102,7 +108,10 @@ details[open] summary { margin-bottom: 10px; }
       <p class="step">1. Request yahan paste karein</p>
       <form id="a-form">
         <textarea id="a-code" rows="3" aria-label="Request" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
-        <button type="submit" class="primary">Key banayein</button>
+        <div class="row">
+          <button type="button" id="a-paste" hidden>Paste</button>
+          <button type="submit" class="primary">Key banayein</button>
+        </div>
       </form>
     </div>
     <p id="a-msg" class="msg" role="alert"></p>
@@ -159,11 +168,19 @@ __INFLATE__
   var subtle = window.crypto && window.crypto.subtle;
   var HERE = location.origin + location.pathname;
   var contentKey = null;                       /* held only while the approve screen is open */
+  /* Opened from a Home Screen icon. On an iPhone such an icon keeps its own storage, apart from Safari's,
+     and a tapped link opens Safari, not the icon. So a key for the icon is asked for inside it and pasted into it. */
+  var APP = navigator.standalone === true || !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  var KEY_LINK = '\uD83D\uDD11 Solar Plant Calculator ki key\n\uD83D\uDC47 Yeh link dabayein\n';
+  var KEY_APP = '\uD83D\uDD11 Solar Plant Calculator ki key\n' +
+    '1\uFE0F\u20E3 Is message ko daba kar rakhein \u27A1\uFE0F Copy \uD83D\uDCCB\n' +
+    '2\uFE0F\u20E3 Home Screen ka icon kholein \u27A1\uFE0F Paste \u27A1\uFE0F Kholein \u2705\n';
   function $(id) { return document.getElementById(id); }
 
   var TEXT = {
     notKey: 'Yeh key sahi nahin hai. Poora message paste karein.',
     otherDevice: 'Yeh key is device ke liye nahin hai. Nayi request bhejein.',
+    forApp: 'Yeh key Home Screen wale icon ke liye hai. Message copy karke wahan paste karein.',
     stale: 'Key ab kaam nahin karti. Nayi request bhejein.',
     ownerWrong: 'Owner key galat hai.',
     ownerNeeded: 'Pehle owner key daalein.',
@@ -296,6 +313,16 @@ __INFLATE__
     if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
   }
+  /* a Paste button, where the browser lets a page read the clipboard after a tap */
+  function pasteButton(btn, area, then) {
+    if (!navigator.clipboard || !navigator.clipboard.readText) return;
+    btn.hidden = false;
+    btn.addEventListener('click', function () {
+      navigator.clipboard.readText().then(function (t) {
+        if (t) { area.value = t; then(); } else area.focus();
+      }, function () { area.focus(); });
+    });
+  }
   /* the text sits in a hidden box; the box is shown only when copying fails, so it can be copied by hand */
   function copy(area, note) {
     function done(ok) { area.hidden = ok; say(note, ok ? 'copied' : 'copyFail'); }
@@ -314,8 +341,9 @@ __INFLATE__
     view('gate');
     say($('g-msg'), message || null);
     if (ownerOpen) $('g-owner').open = true;
+    if (APP) $('g-step2').textContent = '2. Key wala message copy karke yahan paste karein';
     device(true).then(function (d) {
-      $('g-req').value = 'Solar Plant Calculator: mera device approve karein\n' + HERE + '#approve=D1.' + text64(d.pub);
+      $('g-req').value = 'Solar Plant Calculator: mera device approve karein\n' + HERE + '#approve=D1.' + text64(d.pub) + (APP ? '&app=1' : '');
     }, function () { say($('g-msg'), 'noStore'); $('g-send').disabled = true; $('g-copy').disabled = true; });
   }
   function tryDeviceKey(str, onFail) {
@@ -326,7 +354,7 @@ __INFLATE__
   }
 
   /* ---- the owner's approve screen ---- */
-  function approve(K, request) {
+  function approve(K, request, forApp) {
     contentKey = K;
     view('approve');
     $('a-out').hidden = true;
@@ -334,17 +362,18 @@ __INFLATE__
     /* a request that came as a link needs no pasting: the key is made at once */
     $('a-in').hidden = !!request;
     $('a-step').textContent = request ? 'Key taiyaar hai. Wapas bhejein.' : '2. Key wapas bhejein';
-    if (request) { $('a-code').value = request; makeFromRequest(); }
+    if (request) { $('a-code').value = request + (forApp ? '&app=1' : ''); makeFromRequest(); }
   }
   function makeFromRequest() {
-    var m = /D1\.([A-Za-z0-9_-]{80,})/.exec($('a-code').value), devPub;
+    var typed = $('a-code').value, m = /D1\.([A-Za-z0-9_-]{80,})/.exec(typed), devPub;
+    var forApp = /&app=1(?![A-Za-z0-9_-])/.test(typed);       /* the request came from a Home Screen icon */
     $('a-out').hidden = true;
     say($('a-copied'), null);
     try { devPub = m ? bytes(m[1]) : null; } catch (e) { devPub = null; }
     if (!devPub || devPub.length !== 65) { $('a-in').hidden = false; say($('a-msg'), 'notRequest'); return; }
     makeDeviceKey(contentKey, devPub).then(function (k) {
       say($('a-msg'), null);
-      $('a-key').value = 'Solar Plant Calculator: aapki key\n' + HERE + '#key=' + k;
+      $('a-key').value = (forApp ? KEY_APP : KEY_LINK) + HERE + '#key=' + k + (forApp ? '&app=1' : '');
       $('a-out').hidden = false;
     }, function () { $('a-in').hidden = false; say($('a-msg'), 'notRequest'); });
   }
@@ -362,7 +391,7 @@ __INFLATE__
     if (owner) {
       view('busy');
       keyFromOwner(bytes(owner)).then(function (K) {
-        if (wantsApprove) { approve(K, request ? 'D1.' + request.replace(/^D1\./, '') : null); return null; }
+        if (wantsApprove) { approve(K, request ? 'D1.' + request.replace(/^D1\./, '') : null, hashValue('app') === '1'); return null; }
         return showPage(K);
       }).catch(function () { drop(OWN); start(); });
       return;
@@ -371,6 +400,8 @@ __INFLATE__
     if (linkKey) {
       view('busy');
       tryDeviceKey(linkKey, function (why) {
+        /* a key made for a Home Screen icon, tapped as a link: it has opened in the browser instead */
+        if (why === 'otherDevice' && !APP && hashValue('app') === '1') why = 'forApp';
         if (saved && saved !== linkKey) tryDeviceKey(saved, function () { drop(DKEY); gate(why); });
         else gate(why);
       });
@@ -386,11 +417,13 @@ __INFLATE__
 
   $('g-send').addEventListener('click', function () { send($('g-req').value); });
   $('g-copy').addEventListener('click', function () { copy($('g-req'), $('g-copied')); });
-  $('g-form').addEventListener('submit', function (e) {
-    e.preventDefault();
+  function openTyped() {
     say($('g-msg'), null);
     tryDeviceKey($('g-key').value, function (why) { say($('g-msg'), why); $('g-msg').scrollIntoView({ block: 'center' }); });
-  });
+  }
+  $('g-form').addEventListener('submit', function (e) { e.preventDefault(); openTyped(); });
+  pasteButton($('g-paste'), $('g-key'), openTyped);
+  pasteButton($('a-paste'), $('a-code'), makeFromRequest);
   $('o-form').addEventListener('submit', function (e) {
     var btn = e.target.querySelector('button');
     e.preventDefault();
@@ -399,7 +432,7 @@ __INFLATE__
     ownerBytes($('o-key').value).then(function (ob) {
       return keyFromOwner(ob).then(function (K) {
         put(OWN, text64(ob));
-        if (/^#approve/.test(location.hash || '')) { var r = hashValue('approve'); approve(K, r ? 'D1.' + r.replace(/^D1\./, '') : null); return null; }
+        if (/^#approve/.test(location.hash || '')) { var r = hashValue('approve'); approve(K, r ? 'D1.' + r.replace(/^D1\./, '') : null, hashValue('app') === '1'); return null; }
         return showPage(K);
       });
     }).catch(function () { btn.disabled = false; say($('o-msg'), 'ownerWrong'); });

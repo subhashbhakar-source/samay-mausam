@@ -82,6 +82,8 @@ if (prevPath) {
 const SKELETON = '<!doctype html><html lang="hi-Latn"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   '<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">' +
+  '<meta name="apple-mobile-web-app-title" content="Solar Calc"><link rel="apple-touch-icon" href="icon-180.png">' +
+  '<link rel="icon" type="image/png" href="icon-180.png">' +
   '<style>:root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}' +
   'body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>\n';
 /* a key or request link opened in a tab that already shows the page: load the lock again so it is read;
