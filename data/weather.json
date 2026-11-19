@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "checkedAt": "2026-11-19T06:08:47Z",
+ "checkedAt": "2026-11-19T07:54:58Z",
  "stations": {
   "jaipur": {
    "stationId": "42348",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348",
-   "fetchedAt": "2026-11-19T06:08:47Z",
+   "fetchedAt": "2026-11-19T07:54:58Z",
    "imd": {
     "station": "Jaipur-AMO Jaipur",
     "dated": "2026-11-19",
@@ -27,82 +27,82 @@
      {
       "date": "19-Nov",
       "min_c": 14,
-      "max_c": 30,
+      "max_c": 29,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
-      "rh_0830": 19,
+      "rh_0830": 34,
       "rh_1730": 13
      },
      {
       "date": "20-Nov",
-      "min_c": 15,
-      "max_c": 30,
-      "forecast": "Mainly Clear sky",
-      "warning": "No warning",
-      "rh_0830": 16,
-      "rh_1730": 9
-     },
-     {
-      "date": "21-Nov",
-      "min_c": 16,
+      "min_c": 14,
       "max_c": 28,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
-      "rh_0830": 40,
-      "rh_1730": 12
+      "rh_0830": 38,
+      "rh_1730": 15
      },
      {
-      "date": "22-Nov",
-      "min_c": 17,
+      "date": "21-Nov",
+      "min_c": 14,
       "max_c": 27,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
-      "rh_0830": 42,
-      "rh_1730": 26
-     },
-     {
-      "date": "23-Nov",
-      "min_c": 17,
-      "max_c": 29,
-      "forecast": "Mainly Clear sky",
-      "warning": "No warning",
-      "rh_0830": 42,
+      "rh_0830": 50,
       "rh_1730": 24
      },
      {
-      "date": "24-Nov",
-      "min_c": 17,
+      "date": "22-Nov",
+      "min_c": 14,
+      "max_c": 28,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 53,
+      "rh_1730": 29
+     },
+     {
+      "date": "23-Nov",
+      "min_c": 13,
       "max_c": 29,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
-      "rh_0830": 29,
-      "rh_1730": 17
+      "rh_0830": 47,
+      "rh_1730": 18
+     },
+     {
+      "date": "24-Nov",
+      "min_c": 13,
+      "max_c": 28,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 34,
+      "rh_1730": 14
      },
      {
       "date": "25-Nov",
-      "min_c": 17,
-      "max_c": 29,
+      "min_c": 13,
+      "max_c": 28,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
-      "rh_0830": 20,
-      "rh_1730": 14
+      "rh_0830": 31,
+      "rh_1730": 15
      }
     ]
    },
    "now": {
-    "temp_c": 25.8,
-    "rh": 31,
+    "temp_c": 26,
+    "rh": 23,
     "kind": "measured",
     "source": "imd",
     "url": "https://mausam.imd.gov.in/jaipur/",
-    "readAt": "2026-11-19T06:08:47Z",
-    "sameSince": "2026-11-19T06:08:47Z"
+    "readAt": "2026-11-19T07:54:58Z",
+    "sameSince": "2026-11-19T07:54:58Z"
    }
   },
   "nagaur": {
    "stationId": "42242",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242",
-   "fetchedAt": "2026-11-19T06:08:47Z",
+   "fetchedAt": "2026-11-19T07:54:58Z",
    "imd": {
     "station": "Nagaur",
     "dated": "2026-11-19",
@@ -123,84 +123,84 @@
     "forecast": [
      {
       "date": "19-Nov",
-      "min_c": 11,
+      "min_c": 15,
       "max_c": 29,
-      "forecast": "Mainly Clear sky",
-      "warning": "No warning",
-      "rh_0830": 15,
-      "rh_1730": 9
-     },
-     {
-      "date": "20-Nov",
-      "min_c": 11,
-      "max_c": 29,
-      "forecast": "Mainly Clear sky",
-      "warning": "No warning",
-      "rh_0830": 14,
-      "rh_1730": 8
-     },
-     {
-      "date": "21-Nov",
-      "min_c": 12,
-      "max_c": 28,
-      "forecast": "Mainly Clear sky",
-      "warning": "No warning",
-      "rh_0830": 21,
-      "rh_1730": 8
-     },
-     {
-      "date": "22-Nov",
-      "min_c": 12,
-      "max_c": 27,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
       "rh_0830": 36,
-      "rh_1730": 16
+      "rh_1730": 11
      },
      {
-      "date": "23-Nov",
-      "min_c": 18,
+      "date": "20-Nov",
+      "min_c": 14,
       "max_c": 28,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
-      "rh_0830": 32,
+      "rh_0830": 37,
+      "rh_1730": 11
+     },
+     {
+      "date": "21-Nov",
+      "min_c": 14,
+      "max_c": 28,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 46,
+      "rh_1730": 14
+     },
+     {
+      "date": "22-Nov",
+      "min_c": 13,
+      "max_c": 28,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 50,
       "rh_1730": 17
      },
      {
-      "date": "24-Nov",
-      "min_c": 18,
+      "date": "23-Nov",
+      "min_c": 13,
       "max_c": 28,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
-      "rh_0830": 26,
-      "rh_1730": 13
+      "rh_0830": 47,
+      "rh_1730": 14
+     },
+     {
+      "date": "24-Nov",
+      "min_c": 13,
+      "max_c": 28,
+      "forecast": "Mainly Clear sky",
+      "warning": "No warning",
+      "rh_0830": 40,
+      "rh_1730": 12
      },
      {
       "date": "25-Nov",
-      "min_c": 18,
-      "max_c": 29,
+      "min_c": 13,
+      "max_c": 28,
       "forecast": "Mainly Clear sky",
       "warning": "No warning",
-      "rh_0830": 17,
+      "rh_0830": 38,
       "rh_1730": 11
      }
     ]
    },
    "now": {
-    "temp_c": 23.9,
+    "temp_c": 26.9,
     "kind": "estimate",
     "source": "open-meteo",
-    "at": "2026-11-19T05:00:00Z",
-    "readAt": "2026-11-19T05:06:56Z"
+    "at": "2026-11-19T07:45:00Z",
+    "readAt": "2026-11-19T07:54:58Z"
    }
   }
  },
  "fx": {
-  "usd_inr": 93.3558,
-  "asOf": "2026-11-18T07:30:00Z",
+  "usd_inr": 93.3461,
+  "asOf": "2026-11-19T07:30:00Z",
   "source": "FBIL reference rate, from the RBI home page",
   "url": "https://www.rbi.org.in/",
-  "readAt": "2026-11-19T06:08:47Z",
+  "readAt": "2026-11-19T07:54:58Z",
   "sbi": {
    "tt_buy": 92.95,
    "tt_sell": 93.8,
