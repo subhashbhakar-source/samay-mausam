@@ -82,6 +82,7 @@ if (prevPath) {
 const SKELETON = '<!doctype html><html lang="hi-Latn"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   '<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">' +
+  '<meta name="apple-mobile-web-app-capable" content="yes">' +
   '<meta name="apple-mobile-web-app-title" content="Solar Calc"><link rel="apple-touch-icon" href="icon-180.png">' +
   '<link rel="icon" type="image/png" href="icon-180.png">' +
   '<style>:root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}' +

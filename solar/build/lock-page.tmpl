@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <title>Solar Plant Calculator</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Solar Calc">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-180.png">
@@ -58,6 +59,18 @@ form { display: flex; flex-direction: column; gap: 10px; }
 details { border-top: 1px solid var(--line); padding-top: 12px; }
 summary { cursor: pointer; color: var(--ink-2); font-size: 15px; padding: 6px 0; }
 details[open] summary { margin-bottom: 10px; }
+#g-home, #g-act { display: flex; flex-direction: column; gap: 16px; }
+/* the Home Screen steps: a number, then icons, words and arrows on one line */
+.how { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; counter-reset: how; }
+.how > li { counter-increment: how; display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 8px; row-gap: 4px; align-items: center; }
+.how > li::before { content: counter(how) "."; font-weight: 600; color: var(--ink-2); }
+.how .line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 600; }
+.how .note { grid-column: 2; }
+.ic { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--accent); }
+.ic svg { width: 22px; height: 22px; display: block; }
+.ic.app { border: 0; background: none; }
+.ic.app img { width: 38px; height: 38px; border-radius: 9px; display: block; }
+.arrow { color: var(--ink-3); font-weight: 400; }
 </style>
 </head>
 <body>
@@ -71,25 +84,66 @@ details[open] summary { margin-bottom: 10px; }
   <section id="v-gate" hidden>
     <p id="g-msg" class="msg" role="alert"></p>
 
-    <div class="card">
-      <p class="step">1. Jisne link diya, unhe request bhejein</p>
-      <div class="row">
-        <button type="button" class="primary" id="g-send">Request bhejein</button>
-        <button type="button" id="g-copy">Copy</button>
+    <!-- shown in an iPhone browser only: put the page on the Home Screen first, then activate inside the icon.
+         The words in Latin letters are the ones the phone and this page show on their buttons. -->
+    <div id="g-home" lang="hi" hidden>
+      <div class="card">
+        <p class="step">इस पेज को होम स्क्रीन पर लगाएँ</p>
+        <p class="note" id="g-safari" hidden>पहले यह पेज <span lang="en">Safari</span> में खोलें।</p>
+        <ol class="how">
+          <li>
+            <div class="line">
+              <span class="ic" id="g-menu" role="img" aria-label="तीन बिंदु वाला बटन"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="18.5" cy="12" r="1.9"/></svg></span>
+              <span class="arrow" id="g-menu-arrow" aria-hidden="true">&rarr;</span>
+              <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M8.2 7.2 12 3.4l3.8 3.8"/><path d="M8.5 10.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5a2 2 0 0 0-2-2h-1.5"/></svg></span>
+              <span><span lang="en">Share</span> दबाएँ</span>
+            </div>
+            <p class="note" id="g-menu-note">&#8943; न दिखे तो सीधे <span lang="en">Share</span> दबाएँ।</p>
+          </li>
+          <li>
+            <div class="line">
+              <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4.5"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg></span>
+              <span lang="en">Add to Home Screen</span>
+              <span class="arrow" aria-hidden="true">&rarr;</span>
+              <span lang="en">Add</span>
+            </div>
+            <p class="note">यह सूची में नीचे मिलेगा।</p>
+          </li>
+          <li>
+            <div class="line">
+              <span class="ic app" aria-hidden="true"><img src="icon-180.png" alt="" width="38" height="38"></span>
+              <span>नया आइकन खोलें</span>
+              <span class="arrow" aria-hidden="true">&rarr;</span>
+              <span><span lang="en">Activate</span> करें</span>
+            </div>
+          </li>
+        </ol>
       </div>
-      <p class="note" id="g-copied" role="status"></p>
-      <textarea id="g-req" rows="4" readonly hidden aria-label="Request"></textarea>
     </div>
+    <button type="button" class="link" id="g-skip" lang="hi" hidden>होम स्क्रीन के बिना खोलें</button>
 
-    <div class="card">
-      <p class="step" id="g-step2">2. Key ka link dabayein, ya yahan paste karein</p>
-      <form id="g-form">
-        <textarea id="g-key" rows="3" aria-label="Key" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+    <div id="g-act">
+      <h2>Activate karein</h2>
+      <div class="card">
+        <p class="step">1. Jisne link diya, unhe request bhejein</p>
         <div class="row">
-          <button type="button" id="g-paste" hidden>Paste</button>
-          <button type="submit" class="primary">Kholein</button>
+          <button type="button" class="primary" id="g-send">Request bhejein</button>
+          <button type="button" id="g-copy">Copy</button>
         </div>
-      </form>
+        <p class="note" id="g-copied" role="status"></p>
+        <textarea id="g-req" rows="4" readonly hidden aria-label="Request"></textarea>
+      </div>
+
+      <div class="card">
+        <p class="step" id="g-step2">2. Key ka link dabayein, ya yahan paste karein</p>
+        <form id="g-form">
+          <textarea id="g-key" rows="3" aria-label="Key" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+          <div class="row">
+            <button type="button" id="g-paste" hidden>Paste</button>
+            <button type="submit" class="primary">Kholein</button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <details id="g-owner">
@@ -171,6 +225,12 @@ __INFLATE__
   /* Opened from a Home Screen icon. On an iPhone such an icon keeps its own storage, apart from Safari's,
      and a tapped link opens Safari, not the icon. So a key for the icon is asked for inside it and pasted into it. */
   var APP = navigator.standalone === true || !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  /* An iPhone or iPad browser: there a new visitor is first shown how to put the page on the Home Screen. */
+  var UA = navigator.userAgent || '';
+  var IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var SAFARI = /Version\/[\d.]+.*Safari\//.test(UA) && !/CriOS|FxiOS|EdgiOS|OPiOS|OPT\/|GSA\//.test(UA);
+  /* before version 26, Safari had Share on its own toolbar and no page menu with three dots */
+  var NO_MENU = SAFARI && +(/Version\/(\d+)/.exec(UA) || [0, 99])[1] < 26;
   var KEY_LINK = '\uD83D\uDD11 Solar Plant Calculator ki key\n\uD83D\uDC47 Yeh link dabayein\n';
   var KEY_APP = '\uD83D\uDD11 Solar Plant Calculator ki key\n' +
     '1\uFE0F\u20E3 Is message ko daba kar rakhein \u27A1\uFE0F Copy \uD83D\uDCCB\n' +
@@ -338,12 +398,20 @@ __INFLATE__
 
   /* ---- the lock screen ---- */
   function gate(message, ownerOpen) {
+    /* an iPhone browser, on a plain first visit: the Home Screen steps come first, and the icon does the activating.
+       A key made for the icon but tapped as a link lands here too: then only the message is shown. */
+    var homeFirst = IOS && !APP && !ownerOpen && (!message || message === 'forApp');
     view('gate');
     say($('g-msg'), message || null);
     if (ownerOpen) $('g-owner').open = true;
+    $('g-home').hidden = !homeFirst || message === 'forApp';
+    $('g-skip').hidden = !homeFirst;
+    $('g-act').hidden = homeFirst;
+    $('g-safari').hidden = SAFARI;
+    $('g-menu').hidden = $('g-menu-arrow').hidden = $('g-menu-note').hidden = NO_MENU;
     if (APP) $('g-step2').textContent = '2. Key wala message copy karke yahan paste karein';
     device(true).then(function (d) {
-      $('g-req').value = 'Solar Plant Calculator: mera device approve karein\n' + HERE + '#approve=D1.' + text64(d.pub) + (APP ? '&app=1' : '');
+      $('g-req').value = 'Solar Plant Calculator: mera device activate karein\n' + HERE + '#approve=D1.' + text64(d.pub) + (APP ? '&app=1' : '');
     }, function () { say($('g-msg'), 'noStore'); $('g-send').disabled = true; $('g-copy').disabled = true; });
   }
   function tryDeviceKey(str, onFail) {
@@ -417,6 +485,8 @@ __INFLATE__
 
   $('g-send').addEventListener('click', function () { send($('g-req').value); });
   $('g-copy').addEventListener('click', function () { copy($('g-req'), $('g-copied')); });
+  /* "open without the Home Screen": the request and key boxes, used in the browser itself */
+  $('g-skip').addEventListener('click', function () { $('g-home').hidden = true; $('g-skip').hidden = true; $('g-act').hidden = false; });
   function openTyped() {
     say($('g-msg'), null);
     tryDeviceKey($('g-key').value, function (why) { say($('g-msg'), why); $('g-msg').scrollIntoView({ block: 'center' }); });

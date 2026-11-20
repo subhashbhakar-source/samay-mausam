@@ -14,11 +14,13 @@ A loan, tax and take-home calculator for a solar power plant, in Hinglish and En
 
 ### On an iPhone Home Screen
 
-A page added to the Home Screen from Safari opens as an app of its own (the default from iOS 26). That icon keeps its own storage, apart from Safari's, so it counts as a separate device. A tapped link opens Safari, not the icon. So:
+A page added to the Home Screen from Safari opens as an app of its own (the default from iOS 26; on older iOS the page asks for it with `apple-mobile-web-app-capable`). That icon keeps its own storage, apart from Safari's, so it counts as a separate device. A tapped link opens Safari, not the icon. So:
 
 1. Add the page to the Home Screen first: in Safari, the page menu (three dots), Share, Add to Home Screen, Add. Where there are no three dots, the Share button is on the toolbar.
-2. Open the icon and send the request from there.
+2. Open the icon and send the request from there. The icon's screen is headed "Activate karein".
 3. The key message for such a request says to copy the whole message and paste it in the icon. The lock screen in the icon has a Paste button.
+
+In an iPhone or iPad browser, a new visitor's lock screen shows steps 1 and 2 itself, in Hindi (Devanagari) with small drawn icons, in place of the request and key boxes. The link under them ("होम स्क्रीन के बिना खोलें") brings the boxes back for someone who wants to stay in the browser. Other phones and computers see the boxes straight away.
 
 The page marks a request sent from an icon, and the key made for it, with `&app=1`. A key marked this way that is tapped as a link opens Safari, which says to paste the message in the icon instead. `icon-180.png` is the icon shown on the Home Screen, under the name "Solar Calc". Inside the icon, the calculator's "save as CSV" goes to the share sheet, because an icon has no downloads.
 
