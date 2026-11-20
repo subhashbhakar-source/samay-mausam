@@ -108,15 +108,16 @@ a{color:var(--kumkum);text-underline-offset:.15em}
 .clock h2 span{font:500 1.05rem/1.2 var(--body);color:var(--ink-2)}
 .clock-date{color:var(--ink-2);font-size:.95rem}
 /* the dollar in rupees, opposite India's name */
-.in-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem}
-.fx{margin:0;text-align:right;flex:none}
+.in-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:.2rem .75rem}
+.fx{margin:0 0 0 auto;text-align:right;flex:none}   /* on the narrowest phones it moves under the name, still at the right */
 .fx-v{display:block;font:500 1.8rem/1 var(--display);color:var(--tulsi);white-space:nowrap;padding-top:.1rem}
 .fx-cap{display:block;font-size:.8125rem;line-height:1.3;color:var(--ink-2);margin-top:.15rem;white-space:nowrap}
 .clock-note{color:var(--ink-2);font-size:.95rem}
 .clock-note b{font-weight:600;color:var(--ink)}
 .clock-src{color:var(--ink-3);font-size:.875rem;line-height:1.35;margin-top:.2rem;display:flex;gap:.4rem;align-items:flex-start;max-width:34rem}
 .clock-src svg{flex:none;margin-top:.1rem}
-.hero-box{width:100%;margin:.35rem 0 .1rem}
+.clock{min-width:0}   /* a card never grows to fit its digits; the digits are sized to fit the card */
+.hero-box{width:100%;min-width:0;margin:.35rem 0 .1rem}
 .digits{display:inline-flex;align-items:baseline;font-family:var(--display);font-weight:600;line-height:.86;white-space:nowrap;color:var(--ink)}
 .digits .c{display:inline-block;width:1ch;text-align:center}
 .digits .colon{display:inline-block;width:.5ch;text-align:center;position:relative;top:-.05em}
