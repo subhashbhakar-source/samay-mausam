@@ -28,6 +28,10 @@ The page marks a request sent from an icon, and the key made for it, with `&app=
 
 What the lock does not do: an approved person can still show the screen to others or save the tables. One device cannot be removed on its own. To shut everyone out, build the page again with a new content key (see below) and approve the wanted devices again.
 
+## Sending figures back
+
+The calculator has a "share PDF" button, at the top and at the foot of the page. It makes a PDF of the figures on screen (what was entered, the main results, the yearly table and the comparison) and hands it to the phone's share screen, from where it can go to WhatsApp. The PDF is made in the browser; nothing is uploaded anywhere. Where a browser cannot share a file, the PDF is saved on the device instead.
+
 ## How the lock works
 
 - The page is compressed and then encrypted with AES-256-GCM under a random content key.
