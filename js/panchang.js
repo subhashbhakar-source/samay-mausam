@@ -197,7 +197,11 @@
       var rise = sr(dn), next = sr(dn + 1);
       ensure(rise, next);
       var i = bIndex(rise), L = lunAt(rise), segs = [], j;
-      for (j = i; B[j].t < next; j++) segs.push({ n: B[j].n, start: B[j].t, end: B[j + 1].t });
+      for (j = i; B[j].t < next; j++) {
+        /* each tithi of the day with its own month name: a Purnima or Amavasya ending in the morning changes it */
+        var tt = Math.min(Math.max(B[j].t, rise) + 60000, next - 1), ms = monthOf(lunAt(tt), B[j].n);
+        segs.push({ n: B[j].n, start: B[j].t, end: B[j + 1].t, month: ms.name, adhik: ms.adhik, shukla: ms.shukla });
+      }
       var g = ymd(dn), mo = monthOf(L, B[i].n), sv = samvat(L, dn);
       return {
         dn: dn, y: g.y, m: g.m, d: g.d, wd: g.wd,

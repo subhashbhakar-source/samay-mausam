@@ -360,14 +360,24 @@
     if (segs.length === 1) tl += ', फिर ' + T.tithiName((segs[0].n + 1) % 30, true);
     tl += '।';
 
+    /* The big name is the tithi that runs through most of the daylight. When that is not the tithi at sunrise
+       (the one a printed panchang names the day by), the sunrise tithi is said in small letters above it. */
+    var main = segs[0], best = -1;
+    for (i = 0; i < segs.length; i++) {
+      var ov = Math.min(segs[i].end, d.sunset) - Math.max(segs[i].start, d.sunrise);
+      if (ov > best) { best = ov; main = segs[i]; }
+    }
+    var early = main !== segs[0] ? segs[0] : null;
+
     var box = el('div', { class: 'pan-today' },
       el('div', { class: 'pan-tithi' },
         el('div', { class: 'pan-medal' }, icon(top ? top.icon : vaar.icon, 56)),
         el('div', { class: 'pan-names' },
-          el('p', { class: 'pan-rj', text: T.dayName(d.month, d.adhik, d.tithi, true) }),
-          el('p', { class: 'pan-hi', text: T.dayName(d.month, d.adhik, d.tithi, false) + ', विक्रम संवत ' + d.vikram }))),
+          early ? el('p', { class: 'pan-early', text: 'सूर्योदय पर ' + T.tithiName(early.n, true) + ' (' + when(early.end) + ' तक), फिर पूरे दिन:' }) : null,
+          el('p', { class: 'pan-rj', text: T.dayName(main.month, main.adhik, main.n, true) }),
+          el('p', { class: 'pan-hi', text: T.dayName(main.month, main.adhik, main.n, false) + ', विक्रम संवत ' + (early && main.n === 0 && main.month === 0 && early.n === 29 ? d.vikram + 1 : d.vikram) }))),   /* the new year begins with Chaitra Sudi Ekam */
       p('pan-line', tl),
-      cur.n !== d.tithi && now >= d.sunrise ? p('pan-line', 'अभी ' + T.tithiName(cur.n, true) + ' चल रही है।') : null,
+      cur.n !== main.n && now >= d.sunrise ? p('pan-line', 'अभी ' + T.tithiName(cur.n, true) + ' चल रही है।') : null,
       now < d.sunrise ? p('pan-line pan-soft', 'पंचांग का दिन सूर्योदय (' + hm(d.sunrise) + ') से गिना जाता है।') : null,
       p('pan-line pan-soft', 'जयपुर में सूर्योदय ' + hm(d.sunrise) + ', सूर्यास्त ' + hm(d.sunset)));
 
@@ -397,7 +407,8 @@
     /* the weekday and the tithi, in plain words */
     box.appendChild(el('div', { class: 'pan-about' },
       p(null, vaar.text),
-      p(null, T.tithiName(d.tithi, true) + ': ' + T.tithiMeaning(d.tithi))));
+      p(null, T.tithiName(main.n, true) + ': ' + T.tithiMeaning(main.n)),
+      early ? p('pan-soft', T.tithiName(early.n, true) + ' (सुबह तक): ' + T.tithiMeaning(early.n)) : null));
     return box;
   }
 

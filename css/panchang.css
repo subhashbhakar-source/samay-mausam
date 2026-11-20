@@ -12,6 +12,7 @@
 .pan-tithi{display:flex;align-items:center;gap:.85rem}
 .pan-medal{flex:none;width:4.6rem;height:4.6rem;border-radius:50%;background:var(--wash);display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--rule)}
 .pan-names{min-width:0}
+.pan-early{font-size:.875rem;line-height:1.35;color:var(--ink-2);margin-bottom:.1rem}
 .pan-rj{font:600 2.3rem/1.16 var(--display);text-wrap:balance}
 .pan-hi{color:var(--ink-2);line-height:1.35}
 .pan-line{line-height:1.5}
