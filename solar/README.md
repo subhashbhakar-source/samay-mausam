@@ -6,7 +6,7 @@ A loan, tax and take-home calculator for a solar power plant, in Hinglish and En
 
 ## Who can open it
 
-- **The owner** opens it with the owner key, on any device. The key is typed once on a device and then remembered there.
+- **The owner** opens it with the owner key, on any device. The key is typed once on a device and then remembered there. The box for the owner key is not shown on the page people are sent. It comes up in three ways: at the address with `?owner` at the end; when a request link is opened in a browser that does not hold the owner key; and after five quick taps on the page's title, which is the way in from a Home Screen icon.
 - **Anyone else** sees a lock screen with a request to send to the owner. The owner taps the request link, and the page makes a key for that one device. The key is a link: tapping it opens the calculator, and the device remembers it.
 - A key works only in the browser that sent the request. A forwarded link or key opens nothing on another device.
 - The owner can make a key for one more device at any time, from the "Key banayein" button on the calculator or from any request link.
