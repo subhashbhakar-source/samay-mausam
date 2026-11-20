@@ -83,6 +83,7 @@ details[open] summary { margin-bottom: 10px; }
 
   <section id="v-gate" hidden>
     <p id="g-msg" class="msg" role="alert"></p>
+    <p id="g-preview" class="note" hidden>Preview: naye iPhone par link kholne wale ko yeh dikhega.</p>
 
     <!-- shown in an iPhone browser only: put the page on the Home Screen first, then activate inside the icon.
          The words in Latin letters are the ones the phone and this page show on their buttons. -->
@@ -231,6 +232,10 @@ __INFLATE__
   var SAFARI = /Version\/[\d.]+.*Safari\//.test(UA) && !/CriOS|FxiOS|EdgiOS|OPiOS|OPT\/|GSA\//.test(UA);
   /* before version 26, Safari had Share on its own toolbar and no page menu with three dots */
   var NO_MENU = SAFARI && +(/Version\/(\d+)/.exec(UA) || [0, 99])[1] < 26;
+  /* "?preview" on the address shows what a new visitor on an iPhone sees, on any device and without using a saved key.
+     It is for the owner, whose own browser opens straight to the calculator. The address is tidied at once, so a
+     reload, a bookmark or a Home Screen icon made from a preview behaves as usual. Ignored inside an icon. */
+  var PREVIEW = !APP && /[?&]preview(?:[=&]|$)/.test(location.search || '');
   var KEY_LINK = '\uD83D\uDD11 Solar Plant Calculator ki key\n\uD83D\uDC47 Yeh link dabayein\n';
   var KEY_APP = '\uD83D\uDD11 Solar Plant Calculator ki key\n' +
     '1\uFE0F\u20E3 Is message ko daba kar rakhein \u27A1\uFE0F Copy \uD83D\uDCCB\n' +
@@ -358,7 +363,7 @@ __INFLATE__
       return new TextDecoder('utf-8').decode(inflate(zipped, new Uint8Array(P.n)));
     });
   }
-  function tidyAddress() { try { window.history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+  function tidyAddress() { try { window.history.replaceState(null, '', location.pathname + (PREVIEW ? '' : location.search)); } catch (e) {} }
   function showPage(K) {
     return pageFrom(K).then(function (html) {
       tidyAddress();
@@ -400,14 +405,15 @@ __INFLATE__
   function gate(message, ownerOpen) {
     /* an iPhone browser, on a plain first visit: the Home Screen steps come first, and the icon does the activating.
        A key made for the icon but tapped as a link lands here too: then only the message is shown. */
-    var homeFirst = IOS && !APP && !ownerOpen && (!message || message === 'forApp');
+    var homeFirst = (IOS || PREVIEW) && !APP && !ownerOpen && (!message || message === 'forApp');
     view('gate');
     say($('g-msg'), message || null);
     if (ownerOpen) $('g-owner').open = true;
+    $('g-preview').hidden = !PREVIEW;
     $('g-home').hidden = !homeFirst || message === 'forApp';
     $('g-skip').hidden = !homeFirst;
     $('g-act').hidden = homeFirst;
-    $('g-safari').hidden = SAFARI;
+    $('g-safari').hidden = SAFARI || !IOS;
     $('g-menu').hidden = $('g-menu-arrow').hidden = $('g-menu-note').hidden = NO_MENU;
     if (APP) $('g-step2').textContent = '2. Key wala message copy karke yahan paste karein';
     device(true).then(function (d) {
@@ -456,6 +462,7 @@ __INFLATE__
     var wantsApprove = /^#approve/.test(location.hash || ''), request = hashValue('approve');
     var linkKey = hashValue('key'), owner = get(OWN), saved = get(DKEY);
 
+    if (PREVIEW) { tidyAddress(); gate(null); return; }
     if (owner) {
       view('busy');
       keyFromOwner(bytes(owner)).then(function (K) {

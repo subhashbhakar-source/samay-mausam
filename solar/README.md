@@ -22,6 +22,8 @@ A page added to the Home Screen from Safari opens as an app of its own (the defa
 
 In an iPhone or iPad browser, a new visitor's lock screen shows steps 1 and 2 itself, in Hindi (Devanagari) with small drawn icons, in place of the request and key boxes. The link under them ("होम स्क्रीन के बिना खोलें") brings the boxes back for someone who wants to stay in the browser. Other phones and computers see the boxes straight away.
 
+To look at that first screen from a browser that is already approved (the owner's own, for one), open the page with `?preview` at the end of the address. It shows the iPhone steps on any device, uses no saved key and changes nothing; a reload opens the calculator as usual. Inside a Home Screen icon the word is ignored.
+
 The page marks a request sent from an icon, and the key made for it, with `&app=1`. A key marked this way that is tapped as a link opens Safari, which says to paste the message in the icon instead. `icon-180.png` is the icon shown on the Home Screen, under the name "Solar Calc". Inside the icon, the calculator's "save as CSV" goes to the share sheet, because an icon has no downloads.
 
 What the lock does not do: an approved person can still show the screen to others or save the tables. One device cannot be removed on its own. To shut everyone out, build the page again with a new content key (see below) and approve the wanted devices again.
