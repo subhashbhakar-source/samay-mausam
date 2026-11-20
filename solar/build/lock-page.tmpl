@@ -212,6 +212,10 @@ details[open] summary { margin-bottom: 10px; }
  */
 (function () {
   'use strict';
+  /* this folder's own service worker (sw.js) keeps a copy of the page, so that it opens without internet */
+  try {
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(function () {});
+  } catch (e) {}
   var P = __PAYLOAD__;
   var inflate = (function () {
 __INFLATE__

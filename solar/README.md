@@ -52,6 +52,10 @@ OWNER_KEY=XXXX-XXXX-XXXX-XXXX node build/lock.mjs --page page.html --out index.h
 - Only the owner knows the owner key. Ask the owner for it, and never write it into a file here.
 - `build/lock-page.tmpl` is the lock screen. `build/tiny-inflate.js` is [tiny-inflate](https://github.com/foliojs/tiny-inflate) 1.0.3 by Devon Govett (MIT licence, in `build/tiny-inflate.LICENSE`), which unzips the page in the browser.
 
-## The clock app's offline worker
+## Opening without internet
 
-This folder sits inside the clock app's folder, so `../sw.js` also answers for it on phones that have opened the clock app. It takes this page from the network first and keeps a copy, so the calculator opens without internet on those phones. If the network takes more than six seconds on a first visit, the worker shows the clock page instead; opening the link again brings the calculator.
+`sw.js` in this folder is the page's own offline worker; the lock page registers it. It keeps a copy of the locked page (the encrypted file exactly as served), the Home Screen icon and the calculator's fonts. So once the page has been opened with internet on a device, it opens and works there without internet: unlocking, the calculator and the PDF all run in the browser. The page is asked from the network every time, so a new version shows as soon as it is out; the kept copy is used when there is no answer within five seconds. No key passes through the worker.
+
+Each browser, and each Home Screen icon, keeps its own copy. Safari on an iPhone clears the copy, along with the key, when the site is not visited for a week or more. A Home Screen icon keeps both.
+
+This folder sits inside the clock app's folder, whose worker (`../sw.js`) also covers it. A page is looked after by the worker with the closest folder, so once this folder's worker is installed it answers for this page, and the clock app's worker goes on answering for the clock app. Each worker only touches caches that carry its own name (`solar-calc-` here).
