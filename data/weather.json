@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "checkedAt": "2026-11-21T12:20:40Z",
+ "checkedAt": "2026-11-21T13:36:59Z",
  "stations": {
   "jaipur": {
    "stationId": "42348",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42348",
-   "fetchedAt": "2026-11-21T12:20:40Z",
+   "fetchedAt": "2026-11-21T13:36:59Z",
    "imd": {
     "station": "Jaipur-AMO Jaipur",
     "dated": "2026-11-21",
@@ -90,23 +90,23 @@
     ]
    },
    "now": {
-    "temp_c": 24,
+    "temp_c": 21,
     "rh": 49,
     "kind": "measured",
     "source": "imd",
     "url": "https://mausam.imd.gov.in/jaipur/",
-    "readAt": "2026-11-21T12:20:40Z",
-    "sameSince": "2026-11-21T12:20:40Z"
+    "readAt": "2026-11-21T13:36:59Z",
+    "sameSince": "2026-11-21T13:36:59Z"
    }
   },
   "nagaur": {
    "stationId": "42242",
    "source": "https://city.imd.gov.in/citywx/city_weather_test_try_warnings.php?id=42242",
-   "fetchedAt": "2026-11-21T12:20:40Z",
+   "fetchedAt": "2026-11-21T13:36:59Z",
    "imd": {
     "station": "Nagaur",
     "dated": "2026-11-21",
-    "max_c": null,
+    "max_c": 28.3,
     "max_recorded_on": "2026-11-21",
     "max_departure_c": null,
     "min_c": 8.6,
@@ -187,11 +187,11 @@
     ]
    },
    "now": {
-    "temp_c": 21.7,
+    "temp_c": 19.9,
     "kind": "estimate",
     "source": "open-meteo",
-    "at": "2026-11-21T12:15:00Z",
-    "readAt": "2026-11-21T12:20:40Z"
+    "at": "2026-11-21T13:30:00Z",
+    "readAt": "2026-11-21T13:36:59Z"
    }
   }
  },
@@ -200,7 +200,7 @@
   "asOf": "2026-11-20T07:30:00Z",
   "source": "FBIL reference rate, from the RBI home page",
   "url": "https://www.rbi.org.in/",
-  "readAt": "2026-11-21T12:20:40Z",
+  "readAt": "2026-11-21T13:36:59Z",
   "sbi": {
    "tt_buy": 92.2,
    "tt_sell": 93.05,
